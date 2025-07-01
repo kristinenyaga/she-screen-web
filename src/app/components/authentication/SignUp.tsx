@@ -1,11 +1,119 @@
-import React from 'react';
+"use client"
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import toast, { Toaster } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 const SignupPage = () => {
+  const [form, setForm] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone_number: '',
+    facility_id: '',
+    county: '',
+    role: '',
+    password: '',
+    confirm_password: ''
+  });
+  const [facilities, setFacilities] = useState([]);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({})
+  const router = useRouter()
+
+  useEffect(() => {
+    const fetchFacilities = async () => {
+      const res = await fetch("http://127.0.0.1:8000/facilities/")
+      const data = await res.json()
+      setFacilities(data)
+    }
+    fetchFacilities()
+  }, [])
+
+  const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+    
+  }
+  const handleSubmit = async (e:React.FormEvent) => {
+    e.preventDefault()
+    const newErrors: { [key: string]: string } = {};
+    if (!form.first_name.trim()) newErrors.first_name = "First name is required ";
+    if (!form.last_name.trim()) newErrors.last_name = "Last name is required";
+    if (!form.email.trim()) newErrors.email = "Email is required";
+    if (!form.phone_number.trim()) newErrors.phone_number = "Phone number is required ";
+    if (!form.facility_id) newErrors.facility_id = "Facility is required";
+    if (!form.role) newErrors.role = "Role is required";
+
+    if (!form.password) newErrors.password = "Password is required";
+    else if (form.password.length < 8) newErrors.password = "Password must be at least 8 characters";
+
+    if (form.password !== form.confirm_password) {
+      newErrors.confirm_password = "Passwords do not match";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    setErrors({})
+
+    const payload = {
+      first_name: form.first_name,
+      last_name: form.last_name,
+      email: form.email,
+      phone_number: form.phone_number,
+      role: form.role,
+      hashed_password: form.password,
+      facility_id:form.facility_id
+    }
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/facility-users/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body:JSON.stringify(payload)
+      })
+      console.log(res)
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Failed to register user');
+      }
+    
+
+      toast.success('user registered successfully', {
+        duration: 4000,
+        position: 'top-center',
+
+        icon: '👏',
+
+        iconTheme: {
+          primary: '#000',
+          secondary: '#fff',
+        },
+
+        removeDelay: 1000,
+      });
+      setForm({
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone_number: '',
+        facility_id: '',
+        county: '',
+        role: '',
+        password: '',
+        confirm_password: ''
+      })
+      router.push('/login')
+    }
+    catch(err) {
+      toast.error(err.message || 'Something went wrong');
+    }
+  }
   return (
     <div className="min-h-screen bg-white flex flex-col justify-between font-inter">
       <header className="flex justify-between items-center px-8 py-6 ">
-        <h1 className="text-2xl font-bold text-gray-700 font-poppins font-crimson-pro">
+        <h1 className="text-2xl font-bold text-gray-800 font-poppins font-crimson-pro">
           <span className="bg-[#3BA1AF] text-white rounded-full py-2 px-1">She</span>Screen
         </h1>
         <Link href="/login">
@@ -19,65 +127,94 @@ const SignupPage = () => {
         <div className="w-full max-w-2xl space-y-8 text-left">
           <div className="text-center">
             <h2 className="text-3xl md:text-5xl font-crimson-pro font-medium text-[#3BA1AF] mb-2">
-              Create Clinic Account
+              Create an Account
             </h2>
-            <p className="text-gray-700 font-inter text-base">
-              Register your clinic and start managing screenings.
+            <p className="text-gray-800 font-inter text-sm">
+              Register your facility and start managing screenings.
             </p>
           </div>
 
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 font-poppins">Full Name</label>
-              <input type="text" placeholder="Dr. Jane Doe" className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none placeholder:text-sm " required />
+              <label className="block text-sm font-medium text-gray-800 font-poppins">First Name</label>
+              <input type="text" name="first_name" placeholder="Dr. Jane Doe" className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400 placeholder:text-sm text-sm "  onChange={handleChange} />
+              {errors.first_name && (
+                <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-800 font-poppins">Last Name</label>
+              <input type="text" name="last_name" placeholder="Dr. Jane Doe" className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400 placeholder:text-sm text-sm"  onChange={handleChange} />
+              {errors.last_name && (
+                <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 font-poppins">Email Address</label>
-              <input type="email" placeholder="you@clinic.org" className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none placeholder:text-sm " required />
+              <label className="block text-sm font-medium text-gray-800 font-poppins">Email Address</label>
+              <input type="email" name='email' placeholder="you@clinic.org" className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400 placeholder:text-sm text-sm"  onChange={handleChange} />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 font-poppins">Phone Number</label>
-              <input type="tel" placeholder="+254712345678" className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none placeholder:text-sm " />
+              <label className="block text-sm font-medium text-gray-800 font-poppins">Phone Number</label>
+              <input type="tel" name="phone_number" placeholder="+254712345678" className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400 placeholder:text-sm text-sm" onChange={handleChange} />
+              {errors.phone_number && (
+                <p className="text-red-500 text-xs mt-1">{errors.phone_number}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 font-poppins">Clinic Name</label>
-              <input type="text" placeholder="Sunrise Medical Clinic" className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none placeholder:text-sm " required />
-            </div>
+              <label className="block text-sm font-medium text-gray-800 font-poppins">Facility</label>
+              <select
+                name="facility_id"
+                
+                className="w-full mt-2 px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-400 rounded-lg text-sm"
+                onChange={handleChange}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 font-poppins">Region / County</label>
-              <select className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none placeholder:text-sm text-sm" required>
-                <option value="">Select County</option>
-                <option value="Nairobi">Nairobi</option>
-                <option value="Mombasa">Mombasa</option>
-                <option value="Kisumu">Kisumu</option>
-                <option value="Kiambu">Kiambu</option>
-                <option value="Machakos">Machakos</option>
+              >
+                <option value="">Select Facility</option>
+                {facilities.map((facility) => (
+                  <option key={facility.id} value={facility.id}>
+                    {facility.name}
+                  </option>
+                ))}
               </select>
+              {errors.facility_id && (
+                <p className="text-red-500 text-xs mt-1">{errors.facility_id}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 font-poppins">Position / Role</label>
-              <select className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none placeholder:text-sm text-sm" required>
+              <label className="block text-sm font-medium text-gray-800 font-poppins">Position / Role</label>
+              <select name='role' className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400 placeholder:text-sm text-sm" onChange={handleChange} >
                 <option value="">Select Role</option>
                 <option value="Nurse">Nurse</option>
                 <option value="CHW">Community Health Worker (CHW)</option>
                 <option value="Clinic Officer">Clinic Officer</option>
               </select>
+              {errors.role && (
+                <p className="text-red-500 text-xs mt-1">{errors.role}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 font-poppins">Password</label>
-              <input type="password" placeholder="********" className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none placeholder:text-sm " minLength={8} required />
+              <label className="block text-sm font-medium text-gray-800 font-poppins">Password</label>
+              <input type="password" name='password' onChange={handleChange} placeholder="********" className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400 placeholder:text-sm " minLength={8}  />
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-800 font-poppins">Confirm Password</label>
+              <input name='confirm_password' onChange={handleChange} type="password" placeholder="********" className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400 placeholder:text-sm " minLength={8}  />
+              {errors.confirm_password && (
+                <p className="text-red-500 text-xs mt-1">{errors.confirm_password}</p>
+              )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 font-poppins">Confirm Password</label>
-              <input type="password" placeholder="********" className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none placeholder:text-sm " required />
-            </div>
 
             <div className="md:col-span-2">
               <button type="submit" className="w-full bg-[#3BA1AF] hover:bg-[#36929e] text-white font-poppins font-medium py-3 rounded-lg transition cursor-pointer">
@@ -94,7 +231,32 @@ const SignupPage = () => {
           </p>
         </div>
       </main>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        gutter={8}
+        containerClassName=""
+        containerStyle={{}}
+        toastOptions={{
+          // Define default options
+          className: '',
+          duration: 5000,
+          removeDelay: 1000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
 
+          // Default options for specific types
+          success: {
+            duration: 3000,
+            iconTheme: {
+              primary: 'green',
+              secondary: 'black',
+            },
+          },
+        }}
+      />
       <footer className="text-center text-sm text-gray-500 py-6">
         &copy; {new Date().getFullYear()} SheScreen. All rights reserved.
       </footer>

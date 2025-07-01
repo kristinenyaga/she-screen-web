@@ -1,10 +1,47 @@
 "use client"
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import toast, { Toaster } from "react-hot-toast";
 
 const LoginPage = () => {
   const router = useRouter()
+
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/facility-users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: form.email,
+          hashed_password: form.password,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Login failed");
+
+      sessionStorage.setItem("token", data.access_token);
+
+      toast.success("Login successful");
+      setTimeout(() => {
+        router.push("/dashboard/overview");
+      }, 1000); 
+    } catch (err: any) {
+      toast.error(err.message || "Something went wrong");
+    }
+  };
   return (
     <div className="min-h-screen bg-white flex flex-col justify-between font-inter">
       <header className="flex justify-between items-center px-8 py-6 border-b border-[#dadddd]">
@@ -23,25 +60,24 @@ const LoginPage = () => {
       <main className="flex flex-1 items-center justify-center px-6 py-12">
         <div className="w-full max-w-md space-y-8 text-left">
           <div className="mb-6 text-center">
-            <h2 className="text-3xl md:text-5xl font-crimson-pro font-medium text-[#3BA1AF] mb-2">
+            <h2 className="text-3xl md:text-4xl font-crimson-pro font-medium text-[#3BA1AF] mb-2">
               Login to SheScreen
             </h2>
-            <p className="text-gray-700 mb-5 font-inter text-base">
-              Clinic access to patient and screening data.
-            </p>
           </div>
 
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="flex flex-col">
               <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700 font-poppins">
                 Email Address
               </label>
               <input
                 type="email"
-                id="email"
+                name="email"
                 placeholder="you@clinic.org"
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3BA1AF]"
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none"
                 required
+                value={form.email}
+                onChange={handleChange}
               />
             </div>
 
@@ -51,10 +87,12 @@ const LoginPage = () => {
               </label>
               <input
                 type="password"
-                id="password"
+                name="password"
                 placeholder="Enter your password"
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3BA1AF]"
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none"
                 required
+                value={form.password}
+                onChange={handleChange}
               />
             </div>
 
@@ -70,7 +108,6 @@ const LoginPage = () => {
 
             <button
               type="submit"
-              onClick={()=>router.push('/dashboard/overview')}
               className="w-full bg-[#3BA1AF] hover:bg-[#36929e] text-white font-poppins font-medium py-3 rounded-lg transition cursor-pointer"
             >
               Log In
@@ -78,14 +115,39 @@ const LoginPage = () => {
           </form>
 
           <p className="text-center text-sm text-gray-600">
-            Don’t have an account?{' '}
+            Don’t have an account?{" "}
             <a href="/signup" className="text-[#3BA1AF] hover:underline">
               sign up
             </a>
           </p>
         </div>
       </main>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        gutter={8}
+        containerClassName=""
+        containerStyle={{}}
+        toastOptions={{
+          // Define default options
+          className: '',
+          duration: 5000,
+          removeDelay: 1000,
+          style: {
+            background: '#fff',
+            color: '#000',
+          },
 
+          // Default options for specific types
+          success: {
+            duration: 3000,
+            iconTheme: {
+              primary: 'green',
+              secondary: 'black',
+            },
+          },
+        }}
+      />
       <footer className="text-center text-sm text-gray-500 py-6">
         &copy; {new Date().getFullYear()} SheScreen. All rights reserved.
       </footer>
