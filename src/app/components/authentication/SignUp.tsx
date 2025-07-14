@@ -10,24 +10,16 @@ const SignupPage = () => {
     last_name: '',
     email: '',
     phone_number: '',
-    facility_id: '',
-    county: '',
+    date_of_birth: '',
     role: '',
     password: '',
     confirm_password: ''
   });
-  const [facilities, setFacilities] = useState([]);
+
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const router = useRouter()
 
-  useEffect(() => {
-    const fetchFacilities = async () => {
-      const res = await fetch("http://127.0.0.1:8000/facilities/")
-      const data = await res.json()
-      setFacilities(data)
-    }
-    fetchFacilities()
-  }, [])
+
 
   const handleChange = (e:React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -40,7 +32,7 @@ const SignupPage = () => {
     if (!form.last_name.trim()) newErrors.last_name = "Last name is required";
     if (!form.email.trim()) newErrors.email = "Email is required";
     if (!form.phone_number.trim()) newErrors.phone_number = "Phone number is required ";
-    if (!form.facility_id) newErrors.facility_id = "Facility is required";
+    if (!form.date_of_birth.trim()) newErrors.date_of_birth = "Date of birth is required";
     if (!form.role) newErrors.role = "Role is required";
 
     if (!form.password) newErrors.password = "Password is required";
@@ -62,18 +54,17 @@ const SignupPage = () => {
       last_name: form.last_name,
       email: form.email,
       phone_number: form.phone_number,
+      date_of_birth: form.date_of_birth,
       role: form.role,
-      hashed_password: form.password,
-      facility_id:form.facility_id
+      password: form.password,
     }
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/facility-users/", {
+      const res = await fetch("http://127.0.0.1:8000/users/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body:JSON.stringify(payload)
       })
-      console.log(res)
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.detail || 'Failed to register user');
@@ -98,9 +89,8 @@ const SignupPage = () => {
         last_name: '',
         email: '',
         phone_number: '',
-        facility_id: '',
-        county: '',
         role: '',
+        date_of_birth: '',
         password: '',
         confirm_password: ''
       })
@@ -167,38 +157,30 @@ const SignupPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-800 font-poppins">Facility</label>
-              <select
-                name="facility_id"
-                
-                className="w-full mt-2 px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-400 rounded-lg text-sm"
-                onChange={handleChange}
-
-              >
-                <option value="">Select Facility</option>
-                {facilities.map((facility) => (
-                  <option key={facility.id} value={facility.id}>
-                    {facility.name}
-                  </option>
-                ))}
-              </select>
-              {errors.facility_id && (
-                <p className="text-red-500 text-xs mt-1">{errors.facility_id}</p>
-              )}
-            </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-800 font-poppins">Position / Role</label>
               <select name='role' className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400 placeholder:text-sm text-sm" onChange={handleChange} >
                 <option value="">Select Role</option>
-                <option value="Nurse">Nurse</option>
-                <option value="CHW">Community Health Worker (CHW)</option>
-                <option value="Clinic Officer">Clinic Officer</option>
+                <option value="DOCTOR">Doctor</option>
+                <option value="NURSE">Nurse</option>
+
               </select>
               {errors.role && (
                 <p className="text-red-500 text-xs mt-1">{errors.role}</p>
               )}
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-800 font-poppins">Date of Birth</label>
+              <input
+                type="date"
+                name="date_of_birth"
+                className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-400 text-sm"
+                onChange={handleChange}
+                value={form.date_of_birth}
+              />
+            </div>
+            {errors.date_of_birth && (
+              <p className="text-red-500 text-xs mt-1">{errors.date_of_birth}</p>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-800 font-poppins">Password</label>

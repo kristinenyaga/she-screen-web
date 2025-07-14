@@ -19,14 +19,15 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const formData = new URLSearchParams();
+    formData.append("username", form.email); 
+    formData.append("password", form.password);
+
     try {
-      const res = await fetch("http://127.0.0.1:8000/facility-users/login", {
+      const res = await fetch("http://127.0.0.1:8000/users/token", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: form.email,
-          hashed_password: form.password,
-        }),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData.toString(),
       });
 
       const data = await res.json();
@@ -37,11 +38,12 @@ const LoginPage = () => {
       toast.success("Login successful");
       setTimeout(() => {
         router.push("/dashboard/overview");
-      }, 1000); 
+      }, 500);
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");
     }
   };
+  
   return (
     <div className="min-h-screen bg-white flex flex-col justify-between font-inter">
       <header className="flex justify-between items-center px-8 py-6 border-b border-[#dadddd]">
