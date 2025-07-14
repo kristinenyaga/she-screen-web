@@ -4,6 +4,7 @@ import DashboardLayout from '../../DashboardLayout';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Info, User, Calendar, MapPin, FileText, Activity } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
 
 const RiskResultPage = () => {
   const [doctorDecision, setDoctorDecision] = useState('accept');
@@ -161,6 +162,8 @@ const RiskResultPage = () => {
   };
   const styling = getRiskStyling(riskResult.summary.risk_level);
   const RiskIcon = styling.icon;
+  const availability = riskResult.summary.availability || [];
+
   return (
     <DashboardLayout>
       <div className="w-[80vw] pb-9 font-poppins text-[#1E1E1E]">
@@ -223,21 +226,40 @@ const RiskResultPage = () => {
             </p>
 
           </div>
-
           <div className="mb-6">
             <div className="flex items-center space-x-2 mb-3">
               <h3 className={`text-base font-bold ${styling.textColor} uppercase tracking-wide`}>
                 Recommended Actions
               </h3>
             </div>
-            <div className="grid grid-cols-1">
-              {riskResult.summary.next_steps.map((step, idx) => (
-                <div key={idx} className={`${styling.borderColor}`}>
-                  <div className="flex items-center">
-                    <span className={`font-medium ${styling.textColor}`}>{step}</span>
+            <div className="grid grid-cols-1 gap-2">
+              {riskResult.summary.next_steps.map((step, idx) => {
+                const availabilityInfo = riskResult.summary.availability?.find(a => a.service === step);
+                const isAvailable = availabilityInfo?.available;
+
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-3 bg-white/70 border border-gray-200 rounded-md"
+                  >
+                    <span
+                      className={`font-medium ${styling.textColor} ${isAvailable === false ? 'line-through text-red-600' : ''}`}
+                    >
+                      {step}
+                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-sm ${isAvailable ? 'text-green-600' : 'text-red-600'}`}>
+                        {isAvailable ? 'Required Resources in stock' : 'Required resources out of stock'}
+                      </span>
+                      {isAvailable ? (
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-red-600" />
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -313,12 +335,25 @@ const RiskResultPage = () => {
           <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
             <div className="bg-white w-[600px] max-w-full rounded-lg shadow-lg p-6">
               <h2 className="text-xl font-semibold text-[#3BA1AF] mb-4">
-                🩺 Recommended Plan for {patient.first_name}
+              Recommended Plan for {patient.first_name}
               </h2>
 
               {
-                doctorDecision !== 'custom' && (<div className="mb-6 text-lg text-gray-800 space-y-1">{riskResult.summary.next_steps.map((step, idx) => <p key={idx}>{step}</p>)}</div>)
+                doctorDecision !== 'custom' && (
+                  <div className="mb-6 text-lg text-gray-800 space-y-1">
+                    {riskResult.summary.next_steps
+                      .filter(step =>
+                        riskResult.summary.availability?.some(
+                          (item) => item.service === step && item.available
+                        )
+                      )
+                      .map((step, idx) => (
+                        <p key={idx}>{step}</p>
+                      ))}
+                  </div>
+                )
               }
+
 
 
               <div className="space-y-4">
