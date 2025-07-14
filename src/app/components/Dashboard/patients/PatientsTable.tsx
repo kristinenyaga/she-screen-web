@@ -1,83 +1,109 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaSms, FaEye } from 'react-icons/fa';
-import PatientFilter from './PatientFilter'
+import { useRouter } from 'next/navigation';
+import PatientFilter from './PatientFilter';
 
-const mockPatients = [
-  {
-    id: 1,
-    name: 'Jane Wanjiku',
-    phone: '07******45',
-    age: 32,
-    county: 'Kiambu',
-    risk: 'High',
-    status: 'contacted',
-    lastContact: '2025-06-10',
-  },
-  {
-    id: 2,
-    name: 'Mary Atieno',
-    phone: '07******89',
-    age: 28,
-    county: 'Nairobi',
-    risk: 'Medium',
-    status: 'not contacted',
-    lastContact: '2025-06-15',
-  },
-];
+const getRiskColor = (risk) => {
+  switch (risk) {
+    case 'High':
+      return 'text-red-600 font-semibold';
+    case 'Medium':
+      return 'text-yellow-600 font-semibold';
+    case 'Low':
+      return 'text-green-600 font-semibold';
+    default:
+      return 'text-gray-400 italic';
+  }
+};
 
 const PatientTable = () => {
+  const [patients, setPatients] = useState([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/patients');
+        const data = await res.json();
+        setPatients(data);
+      } catch (err) {
+        console.error('Failed to fetch patients', err);
+      }
+    };
+
+    fetchPatients();
+  }, []);
+
   return (
     <div className="overflow-x-auto font-inter">
       <div className='mt-1'>
         <h1 className="text-[22px] font-medium text-gray-700 mb-1">Patient Management</h1>
-        <p className="text-sm text-gray-500">Add, edit, or remove screening and treatment supplies.</p>
+        <p className="text-sm text-gray-500">Manage risk assessments and care plans.</p>
       </div>
+
       <PatientFilter />
-      
+
       <table className="w-[90%] mt-5 text-left border border-gray-100 overflow-hidden">
-        <thead className="bg-[#f7fafa] text-gray-600 text-sm  rouded-2xl">
-          <tr className=' rouded-2xl'>
-            <th className="px-6 py-3  rouded-2xl">Name</th>
+        <thead className="bg-[#f7fafa] text-gray-700 text-sm">
+          <tr>
+            <th className="px-6 py-3">Name</th>
             <th className="px-6 py-3">Phone</th>
             <th className="px-6 py-3">Age</th>
-            <th className="px-6 py-3">County</th>
             <th className="px-6 py-3">Risk Level</th>
-            <th className="px-6 py-3">Status</th>
-            <th className="px-6 py-3">Last Contact</th>
+            <th className="px-6 py-3">Care Plan</th>
+            <th className="px-6 py-3">Pending Test</th>
+            <th className="px-6 py-3">Test Date</th>
             <th className="px-6 py-3 text-center">Actions</th>
           </tr>
         </thead>
         <tbody className="text-sm text-gray-600">
-          {mockPatients.map((patient) => (
-            <tr key={patient.id} className="border-t border-slate-100 hover:bg-slate-50">
-              <td className="px-6 py-4 whitespace-nowrap font-medium">{patient.name}</td>
-              <td className="px-6 py-4">{patient.phone}</td>
-              <td className="px-6 py-4">{patient.age}</td>
-              <td className="px-6 py-4">{patient.county}</td>
-              <td className="px-6 py-4 text-[#3BA1AF] font-semibold">{patient.risk}</td>
-              <td className="px-6 py-4">{patient.status}</td>
-              <td className="px-6 py-4">{patient.lastContact}</td>
-              <td className="px-6 py-4 text-center space-x-2">
-                <button
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#3BA1AF] text-white text-sm hover:bg-[#36929e] transition cursor-pointer"
-                  title="Send SMS"
-                >
-                  <FaSms className="text-white" />
-                  send SMS
-                </button>
+          {patients.map((p) => {
+            const fullName = `${p.first_name} ${p.last_name}`;
+            const risk = p.risk_predictions?.length > 0
+              ? p.risk_predictions[0]?.risk_level
+              : null;
 
-                <button
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 text-sm hover:bg-gray-200 transition cursor-pointer"
-                  title="View Patient Details"
-                >
-                  <FaEye />
-                  View
-                </button>
-
-              </td>
-            </tr>
-          ))}
+            return (
+              <tr key={p.id} className="border-t border-slate-100 hover:bg-slate-50">
+                <td className="px-6 py-4 font-medium">{fullName}</td>
+                <td className="px-6 py-4">{p.phone_number || '—'}</td>
+                <td className="px-6 py-4">
+                  {p.date_of_birth
+                    ? new Date().getFullYear() - new Date(p.date_of_birth).getFullYear()
+                    : '—'}
+                </td>
+                <td className="px-6 py-4">
+                  {p.risk_level ? (
+                    <span className={getRiskColor(p.risk_level)}>{p.risk_level}</span>
+                  ) : (
+                    <span className="text-gray-400 italic">Not Assessed</span>
+                  )}
+                </td>
+                <td className="px-6 py-4 text-gray-500 italic">—</td>
+                <td className="px-6 py-4 text-gray-400">—</td>
+                <td className="px-6 py-4 text-gray-400">—</td>
+                <td className="px-6 py-4 text-center space-x-2">
+                  <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 text-sm hover:bg-gray-200 transition">
+                    <FaEye />
+                    View
+                  </button>
+                  {
+                    !p.risk_level && (
+                      <button
+                        onClick={() =>
+                          router.push(`/dashboard/patients/risk-prediction?patient_id=${p.id}`)
+                        }
+                        className="px-4 py-2 cursor-pointer bg-[#3BA1AF] text-white text-sm rounded-md hover:bg-[#3599a0] transition"
+                      >
+                        risk assessment
+                      </button>
+                    )
+                  }
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
