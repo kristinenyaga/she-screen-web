@@ -84,7 +84,9 @@ const PatientTable = () => {
                 <td className="px-6 py-4 text-gray-400">—</td>
                 <td className="px-6 py-4 text-gray-400">—</td>
                 <td className="px-6 py-4 text-center space-x-2">
-                  <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 text-sm hover:bg-gray-200 transition">
+                  <button onClick={() =>
+                    router.push(`/dashboard/patients/${p.id}`)
+                  } className="inline-flex cursor-pointer items-center gap-1 px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 text-sm hover:bg-gray-200 transition">
                     <FaEye />
                     View
                   </button>
