@@ -46,7 +46,17 @@ const RiskPrediction = () => {
   const router = useRouter();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    const updatedFormData = { ...formData, [name]: value };
+
+    if (name === "is_sexually_active" && value === "No") {
+      updatedFormData.number_of_sexual_partners = "0";
+      updatedFormData.first_sexual_intercourse_age = "0";
+    }
+
+    setFormData(updatedFormData);
+  
   };
 
   const nextStep = () => setStep((prev) => prev + 1);
@@ -332,7 +342,7 @@ const RiskPrediction = () => {
                 <label className="block mb-1 font-medium text-gray-700">
                   Have you been diagnosed with an immune-compromising condition?
                   <span className="block text-sm text-gray-500">
-                    (e.g., HIV, cancer, transplants, autoimmune disorders)
+                    (e.g., HIV, cancer, autoimmune disorders)
                   </span>
                 </label>
                 <select
