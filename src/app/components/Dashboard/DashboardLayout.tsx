@@ -1,16 +1,17 @@
-"use client"
+"use client";
 import React, { useState } from "react";
 import SideBar from "./sidebar/SideBar";
 
 const DashboardLayout = ({ children }) => {
-  const [showSideBar, setShowSideBar] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   return (
-    <div className='layout'>
-      <div>
-        <SideBar showSideBar={showSideBar} setShowSideBar={setShowSideBar} />
-      </div>
-      <main className='content'>
+    <div className="flex h-screen">
+      <SideBar isExpanded={isSidebarExpanded} setIsExpanded={setIsSidebarExpanded} />
+      <main
+        className={`transition-all duration-500 ease-in-out ${isSidebarExpanded ? 'ml-72' : 'ml-20'
+          } w-full px-6 py-8`}
+      >
         {children}
       </main>
     </div>
