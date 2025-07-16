@@ -4,7 +4,19 @@ import { FaEye } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import PatientFilter from './PatientFilter';
 
-const getRiskColor = (risk) => {
+type RiskLevel = 'High' | 'Medium' | 'Low' | null;
+
+interface Patient {
+  id: number;
+  patient_code: string;
+  first_name: string;
+  last_name: string;
+  phone_number?: string;
+  date_of_birth?: string;
+  risk_level?: RiskLevel;
+}
+
+const getRiskColor = (risk: RiskLevel): string => {
   switch (risk) {
     case 'High':
       return 'text-red-600 font-semibold';
@@ -18,7 +30,7 @@ const getRiskColor = (risk) => {
 };
 
 const PatientTable = () => {
-  const [patients, setPatients] = useState([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
   const router = useRouter();
 
   useEffect(() => {

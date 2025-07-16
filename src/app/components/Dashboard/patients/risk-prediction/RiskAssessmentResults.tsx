@@ -3,13 +3,14 @@ import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../DashboardLayout';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AlertTriangle, CheckCircle2, Info, User, Calendar, MapPin} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Info, User, Calendar} from 'lucide-react';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { PatientProfile, PricingDetails, RiskResult } from './typeDefinitions';
 
-const RiskResultPage = () => {
-  const [doctorDecision, setDoctorDecision] = useState('accept');
+const RiskAssessmentResults = () => {
+  const [doctorDecision, setDoctorDecision] = useState<'accept' | 'custom'>('accept');
   const [notes, setNotes] = useState('');
-  const [urgency, setUrgency] = useState('Medium');
+  const [urgency, setUrgency] = useState<'High' | 'Medium' | 'Low'>('Medium');
   const [customActions, setCustomActions] = useState('');
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
@@ -19,10 +20,10 @@ const RiskResultPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const patientId = searchParams.get('patient');
-  const [patientProfile, setPatientProfile] = useState(null);
-  const [riskResult, setRiskResult] = useState(null);
+  const [patientProfile, setPatientProfile] = useState<PatientProfile | null>(null);
+  const [riskResult, setRiskResult] = useState<RiskResult | null>(null);
+
   const [loading, setLoading] = useState(true);
-  const [showFactors, setShowFactors] = useState(false);
   const [showAdditionalServices, setShowAdditionalServices] = useState(false);
 
   useEffect(() => {
@@ -190,7 +191,7 @@ const RiskResultPage = () => {
     
     
 
-  const getRiskStyling = (level) => {
+  const getRiskStyling = (level:string) => {
     switch (level.toLowerCase()) {
       case 'high':
         return {
@@ -239,13 +240,13 @@ const RiskResultPage = () => {
     }
   };
 
-  const formatPercentage = (probability) => {
+  const formatPercentage = (probability:number) => {
     const percentage = (probability * 100).toFixed(1);
     return `${percentage}%`;
   };
   const styling = getRiskStyling(riskResult.summary.risk_level);
   const RiskIcon = styling.icon;
-  const pricingInfo = {
+  const pricingInfo: Record<string, PricingDetails> = {
     "Pap Smear": {
       price: 1500,
       nhif_covered: true,
@@ -484,7 +485,7 @@ const RiskResultPage = () => {
                   <label className="block font-medium mb-1 text-gray-800">Urgency</label>
                   <select
                     value={urgency}
-                    onChange={(e) => setUrgency(e.target.value)}
+                    onChange={(e) => setUrgency(e.target.value as 'High' | 'Medium' | 'Low')}
                     className="w-full border border-gray-300 text-gray-500 focus:outline-none px-3 py-2 rounded-md"
                   >
                     <option value="High">High</option>
@@ -546,4 +547,4 @@ const RiskResultPage = () => {
   );
 };
 
-export default RiskResultPage;
+export default RiskAssessmentResults;

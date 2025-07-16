@@ -2,12 +2,56 @@
 import React, { useState } from 'react';
 import DashboardLayout from '../../DashboardLayout';
 
-const tabs = ['Profile', 'Risk Assessment', 'Recommended Tests', 'Test Results', 'Final Plan'];
+type Tab = 'Profile' | 'Risk Assessment' | 'Recommended Tests' | 'Test Results' | 'Final Plan';
+
+interface Patient {
+  full_name: string;
+  date_of_birth: string;
+  age: number;
+  residence: string;
+  phone: string;
+}
+
+interface RiskAssessment {
+  level: 'High' | 'Medium' | 'Low';
+  probability: string;
+  interpretation: string;
+  factors: Record<string, string>;
+}
+
+interface Recommendations {
+  tests: string[];
+  urgency: 'High' | 'Medium' | 'Low';
+  resources_available: Record<string, boolean>;
+  costs: Record<string, number>;
+}
+
+interface TestResult {
+  test: string;
+  result: 'Positive' | 'Negative';
+  date: string;
+}
+
+interface DoctorPlan {
+  final_recommendation: string;
+  notes: string;
+  urgency: 'High' | 'Medium' | 'Low';
+}
+
+interface PatientData {
+  patient: Patient;
+  risk_assessment: RiskAssessment;
+  recommendations: Recommendations;
+  test_results: TestResult[];
+  doctor_plan: DoctorPlan;
+}
+
+const tabs: Tab[] = ['Profile', 'Risk Assessment', 'Recommended Tests', 'Test Results', 'Final Plan'];
 
 const PatientDetails = () => {
-  const [activeTab, setActiveTab] = useState('Profile');
+  const [activeTab, setActiveTab] = useState<Tab>('Profile');
 
-  const data = {
+  const data: PatientData = {
     patient: {
       full_name: 'Jane Wanjiku',
       date_of_birth: '1989-06-12',

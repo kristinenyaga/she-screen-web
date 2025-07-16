@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
@@ -95,9 +95,8 @@ const SignupPage = () => {
         confirm_password: ''
       })
       router.push('/login')
-    }
-    catch(err) {
-      toast.error(err.message || 'Something went wrong');
+    } catch (err) {
+      toast.error((err as Error).message || "Something went wrong");
     }
   }
   return (

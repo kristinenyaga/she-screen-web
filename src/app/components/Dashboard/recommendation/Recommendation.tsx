@@ -9,6 +9,24 @@ const STATUS_OPTIONS = [
   { label: 'Care Plan Added', value: 'care_plan_added' },
   { label: 'Closed', value: 'closed' },
 ];
+type PatientInfo = {
+  patient_code: string;
+  first_name: string;
+  last_name: string;
+};
+
+type RecommendationType = {
+  id: number;
+  status: 'pending' | 'awaiting_test_results' | 'care_plan_added' | 'closed';
+  urgency: 'High' | 'Medium' | 'Low';
+  patient: PatientInfo;
+  test_recommendations?: string;
+  non_test_recommendations?: string;
+  additional_services?: string;
+  notes?: string;
+  created_at: string;
+};
+
 
 const getStatusBadgeClass = (status: string) => {
   const map: Record<string, string> = {
@@ -21,7 +39,7 @@ const getStatusBadgeClass = (status: string) => {
 };
 
 const Recommendation = () => {
-  const [recommendations, setRecommendations] = useState([]);
+  const [recommendations, setRecommendations] = useState<RecommendationType[]>([]);
   const [filteredStatus, setFilteredStatus] = useState('all');
   const [loading, setLoading] = useState(true);
 

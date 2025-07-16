@@ -1,15 +1,45 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../DashboardLayout';
-import { CheckCircle, Clock, XCircle } from 'lucide-react';
 
-const STATUS_OPTIONS = ['all', 'pending', 'completed'];
+type LabTestStatus = 'pending' | 'completed';
+type FilterStatus = LabTestStatus | 'all';
 
+
+interface Patient {
+  id: number;
+  first_name: string;
+  last_name: string;
+  patient_code: string;
+}
+
+interface Doctor {
+  id: number;
+  first_name: string;
+  last_name: string;
+}
+
+interface Service {
+  id: number;
+  name: string;
+}
+
+interface LabTest {
+  id: number;
+  patient: Patient | null;
+  ordered_by: Doctor | null;
+  service: Service | null;
+  date_ordered: string;
+  status: LabTestStatus;
+  result: string | null;
+  comment?: string | null;
+}
+const STATUS_OPTIONS: FilterStatus[] = ['all', 'pending', 'completed'];
 const LabTests = () => {
-  const [tests, setTests] = useState([]);
-  const [filteredStatus, setFilteredStatus] = useState('all');
+  const [tests, setTests] = useState<LabTest[]>([]);
+  const [filteredStatus, setFilteredStatus] = useState<FilterStatus>('all');
   const [loading, setLoading] = useState(true);
-  const [editingTest, setEditingTest] = useState(null);
+  const [editingTest, setEditingTest] = useState<LabTest | null>(null);
   const [resultValue, setResultValue] = useState('');
   const [comment, setComment] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,7 +89,7 @@ const LabTests = () => {
     }
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status: LabTestStatus) => {
     switch (status) {
       case 'pending':
         return <span className="text-base px-2 py-1 bg-yellow-100 text-yellow-600 rounded-md">Pending</span>;

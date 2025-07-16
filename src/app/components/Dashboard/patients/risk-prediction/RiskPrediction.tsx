@@ -1,17 +1,19 @@
 "use client"
 import React, { useState } from 'react';
+import { ChangeEvent } from 'react';
 import DashboardLayout from '../../DashboardLayout';
 import { useRouter } from 'next/navigation';
 import { MdInfo } from 'react-icons/md';
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
+import { RiskFormData } from './typeDefinitions';
 
 const RiskPrediction = () => {
   const [step, setStep] = useState(1);
   const searchParams = useSearchParams();
   const patientId = searchParams.get('patient_id');
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RiskFormData>({
     first_name: '',
     last_name: '',
     phone_number:'',
@@ -45,7 +47,7 @@ const RiskPrediction = () => {
   
   const router = useRouter();
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
     const updatedFormData = { ...formData, [name]: value };
@@ -79,7 +81,6 @@ const RiskPrediction = () => {
     try {
       const token = sessionStorage.getItem("token");
       let patientIdToUse = patientId;
-      let newPatientCreated = false;
 
       if (!patientIdToUse) {
         const res = await fetch("http://localhost:8000/patients/", {
@@ -102,7 +103,7 @@ const RiskPrediction = () => {
 
         const patient = await res.json();
         patientIdToUse = patient.id;
-        newPatientCreated = true;
+
       }
 
       const profileRes = await fetch("http://localhost:8000/patient-profiles/", {
@@ -142,9 +143,9 @@ const RiskPrediction = () => {
 
       const prediction = await predictionRes.json();
       router.push(`/dashboard/patients/risk-prediction-results?patient=${prediction.patient_id}`);
-    } catch (err) {
+    } catch (err:unknown) {
       console.error(err);
-      alert(err.message || "Something went wrong");
+      alert("Something went wrong");
     }
   };
   
@@ -171,11 +172,6 @@ const RiskPrediction = () => {
   }, [patientId]);
 
 
-  const calculateAge = (dob: string) => {
-    const birth = new Date(dob);
-    const today = new Date();
-    return today.getFullYear() - birth.getFullYear();
-  };
   
   return (
     <DashboardLayout>

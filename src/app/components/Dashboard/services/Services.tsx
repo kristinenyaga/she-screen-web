@@ -20,7 +20,7 @@ const Services = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [open, setOpen] = React.useState(false);
   const [mode, setMode] = useState<'add' | 'edit'>('add');
-  const [activeService, setActiveService] = useState<Service | null>(null);
+
 
   useEffect(() => {
     const fetchServiceCosts = async () => {
@@ -48,14 +48,16 @@ const Services = () => {
     fetchServiceCosts()
    }, [])
 
-  const handleSubmit = (updated) => {
-    if (mode === "add") {
-      setServices(prev => [...prev,updated])
-    }
-    else if (mode === "edit") {
-      setServices(prev => prev.map(service => (service.id === updated.id ?updated :service)))
-    }
-  }
+  // const handleSubmit = (updated) => {
+  //   if (mode === "add") {
+  //     setServices(prev => [...prev,updated])
+  //   }
+  //   else if (mode === "edit") {
+  //     setServices(prev => prev.map(service => (service.id === updated.id ?updated :service)))
+  //   }
+  // }
+  console.log(open)
+  console.log(mode)
   return (
     <DashboardLayout>
       <div className="font-poppins w-[90%]">

@@ -1,8 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState,ReactNode } from "react";
 import SideBar from "./sidebar/SideBar";
 
-const DashboardLayout = ({ children }) => {
+type DashboardLayoutProps = {
+  children: ReactNode;
+};
+const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   return (
