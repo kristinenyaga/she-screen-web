@@ -1,38 +1,61 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaPlusCircle, FaEdit, FaTrash } from 'react-icons/fa';
 import DashboardLayout from '../DashboardLayout';
 
-const mockServices = [
-  {
-    id: 1,
-    name: 'HPV DNA Test',
-    nhifCovered: true,
-    totalCost: 2500,
-    patientPays: 500,
-    resources: ['HPV Test Kit', 'Gloves'],
-  },
-  {
-    id: 2,
-    name: 'Visual Inspection with Acetic Acid (VIA)',
-    nhifCovered: false,
-    totalCost: 300,
-    patientPays: 300,
-    resources: ['Speculum', 'Acetic Acid'],
-  },
-  {
-    id: 3,
-    name: 'Cryotherapy',
-    nhifCovered: true,
-    totalCost: 4000,
-    patientPays: 1000,
-    resources: ['Cryotherapy Gas', 'Cryo Gun'],
-  },
-];
+interface ServiceObj{
+  name:string
+}
+interface Service{
+  id: number;
+  nhif_covered: boolean;
+  base_cost: number;
+  insurance_copay_amount: number;
+  out_of_pocket: number
+  service:ServiceObj
+}
+
 
 const Services = () => {
-  const [services, setServices] = useState(mockServices);
+  const [services, setServices] = useState<Service[]>([]);
+  const [open, setOpen] = React.useState(false);
+  const [mode, setMode] = useState<'add' | 'edit'>('add');
+  const [activeService, setActiveService] = useState<Service | null>(null);
 
+  useEffect(() => {
+    const fetchServiceCosts = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const res = await fetch(`http://127.0.0.1:8000/service-costs/`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch service costs");
+        }
+
+        const data = await res.json();
+         setServices(data);
+      } catch (error) {
+        console.error("Error fetching service costs:", error);
+      }
+    };
+  
+    fetchServiceCosts()
+   }, [])
+
+  const handleSubmit = (updated) => {
+    if (mode === "add") {
+      setServices(prev => [...prev,updated])
+    }
+    else if (mode === "edit") {
+      setServices(prev => prev.map(service => (service.id === updated.id ?updated :service)))
+    }
+  }
   return (
     <DashboardLayout>
       <div className="font-poppins w-[90%]">
@@ -45,7 +68,10 @@ const Services = () => {
               Define the services you offer, associated costs, and required resources.
             </p>
           </div>
-          <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#3BA1AF] text-white text-sm font-medium rounded-lg shadow hover:bg-[#36929e] transition">
+          <button onClick={() => {
+            setMode('add');
+            setOpen(true);
+          }} className="inline-flex cursor-pointer items-center gap-2 px-5 py-2.5 bg-[#3BA1AF] text-white text-sm font-medium rounded-lg shadow hover:bg-[#36929e] transition">
             <FaPlusCircle /> Add Service
           </button>
         </div>
@@ -56,28 +82,26 @@ const Services = () => {
               <tr>
                 <th className="px-6 py-4">Service Name</th>
                 <th className="px-6 py-4">NHIF Covered</th>
-                <th className="px-6 py-4">Total Cost</th>
-                <th className="px-6 py-4">Patient Pays</th>
-                <th className="px-6 py-4">Resources</th>
+                <th className="px-6 py-4">Base Cost</th>
+                <th className="px-6 py-4">Insurance Copay</th>
+                <th className="px-6 py-4">Patient Payment</th>
                 <th className="px-6 py-4">Actions</th>
               </tr>
             </thead>
             <tbody>
               {services.map((service) => (
                 <tr key={service.id} className="border-b border-gray-200">
-                  <td className="px-6 py-4 whitespace-nowrap">{service.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{service?.service.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {service.nhifCovered ? (
+                    {service.nhif_covered ? (
                       <span className="text-green-600 font-medium">Yes</span>
                     ) : (
                       <span className="text-red-600 font-medium">No</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">KES {service.totalCost}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">KES {service.patientPays}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {service.resources.join(', ')}
-                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">KES {service?.base_cost}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">KES {service?.insurance_copay_amount}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">KES {service?.out_of_pocket}</td>
                   <td className="px-6 py-4 whitespace-nowrap flex items-center space-x-3">
                     <button className="text-green-600 hover:text-green-500">
                       <FaEdit />
