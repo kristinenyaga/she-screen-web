@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { FaSms, FaEye } from 'react-icons/fa';
+import { FaEye } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import PatientFilter from './PatientFilter';
 
@@ -47,11 +47,12 @@ const PatientTable = () => {
       <table className="w-[90%] mt-5 text-left border border-gray-100 overflow-hidden">
         <thead className="bg-[#f7fafa] text-gray-700 text-sm">
           <tr>
+            <th className="px-6 py-3">Patient Code</th>
             <th className="px-6 py-3">Name</th>
             <th className="px-6 py-3">Phone</th>
             <th className="px-6 py-3">Age</th>
             <th className="px-6 py-3">Risk Level</th>
-            <th className="px-6 py-3">Care Plan</th>
+            <th className="px-6 py-3">Follow up Plan</th>
             <th className="px-6 py-3">Pending Test</th>
             <th className="px-6 py-3">Test Date</th>
             <th className="px-6 py-3 text-center">Actions</th>
@@ -60,12 +61,11 @@ const PatientTable = () => {
         <tbody className="text-sm text-gray-600">
           {patients.map((p) => {
             const fullName = `${p.first_name} ${p.last_name}`;
-            const risk = p.risk_predictions?.length > 0
-              ? p.risk_predictions[0]?.risk_level
-              : null;
+
 
             return (
               <tr key={p.id} className="border-t border-slate-100 hover:bg-slate-50">
+                <td className="px-6 py-4 font-medium">{p.patient_code}</td>
                 <td className="px-6 py-4 font-medium">{fullName}</td>
                 <td className="px-6 py-4">{p.phone_number || '—'}</td>
                 <td className="px-6 py-4">
