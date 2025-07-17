@@ -39,7 +39,7 @@ const FollowUpReviewPage = () => {
   useEffect(() => {
     const fetchFollowUp = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/patients/recommendation/${patientId}/latest`);
+        const res = await fetch(`http://127.0.0.1:8000/patients/followup/${patientId}/latest`);
         if (!res.ok) throw new Error('No recommendation found');
         const data = await res.json();
 

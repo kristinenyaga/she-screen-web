@@ -107,7 +107,7 @@ const LabTests = () => {
             const riskRes = await fetch(`http://127.0.0.1:8000/patients/risk-prediction/${updated.patient?.id}`);
             const riskPrediction = riskRes.ok ? await riskRes.json() : null;
 
-            await fetch('http://127.0.0.1:8000/patients/recommendation/', {
+            await fetch('http://127.0.0.1:8000/patients/followup/', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
