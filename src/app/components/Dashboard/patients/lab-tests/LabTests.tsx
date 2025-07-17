@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../DashboardLayout';
+import { useRouter } from 'next/navigation';
 
 type LabTestStatus = 'pending' | 'completed';
 type FilterStatus = LabTestStatus | 'all';
@@ -43,6 +44,7 @@ const LabTests = () => {
   const [resultValue, setResultValue] = useState('');
   const [comment, setComment] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter()
 
   useEffect(() => {
     const fetchTests = async () => {
@@ -59,18 +61,29 @@ const LabTests = () => {
 
     fetchTests();
   }, []);
+  function calculateAge(dateOfBirth: string): number {
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return age;
+  }
 
   const handleSave = async () => {
     if (!editingTest || !resultValue) return;
 
     try {
       const res = await fetch(`http://127.0.0.1:8000/lab-tests/${editingTest.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           result: resultValue,
           status: 'completed',
           comment,
+          entered_by_id: 1
         }),
       });
 
@@ -83,6 +96,40 @@ const LabTests = () => {
         setTests(prev =>
           prev.map(t => (t.id === updated.id ? updated : t))
         );
+
+        const testName = updated.service?.name;
+        if (testName === "HPV DNA Test" || testName === "Pap Smear") {
+          try {
+            const profileRes = await fetch(`http://localhost:8000/patient-profiles/${updated.patient?.id}`);
+            if (!profileRes.ok) throw new Error('Profile not found');
+            const profile = await profileRes.json();
+
+            const riskRes = await fetch(`http://127.0.0.1:8000/patients/risk-prediction/${updated.patient?.id}`);
+            const riskPrediction = riskRes.ok ? await riskRes.json() : null;
+
+            await fetch('http://127.0.0.1:8000/patients/recommendation/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                patient_id: updated.patient?.id,
+                risk_prediction_id: riskPrediction?.id || null,
+                age: calculateAge(profile.patient.date_of_birth),
+                number_of_sexual_partners: profile.number_of_sexual_partners,
+                first_sexual_intercourse_age: profile.first_sexual_intercourse_age,
+                smoking_status: profile.smoking_status,
+                stds_history: profile.stds_history,
+                hpv_current_test_result: testName === 'HPV DNA Test' ? updated.result : profile.hpv_result,
+                pap_smear_result: testName === 'Pap Smear' ? updated.result : 'Negative', 
+                screening_type_last: updated.service?.name, 
+              }),
+            });
+            router.push(`/dashboard/follow-up/${profile.patient.id}?patient=${profile.patient.id}`)
+
+          } catch (err) {
+            console.error('Error triggering follow-up:', err);
+          }
+        }
+
       }
     } catch (err) {
       console.error('Failed to update lab test result', err);
@@ -138,7 +185,6 @@ const LabTests = () => {
           className="mb-6 w-[90%] px-4 py-3 border border-gray-300 rounded-md focus:ring-[#3BA1AF] focus:border-[#3BA1AF]"
         />
 
-
         {/* Lab Tests Table */}
         {loading ? (
           <p className="text-gray-500">Loading lab tests...</p>
@@ -148,12 +194,13 @@ const LabTests = () => {
                 <thead className="bg-[#f7fafa] text-gray-800 text-sm font-medium">
                   <tr>
                     <th className="px-4 py-3">Patient Code</th>
-                  <th className="px-4 py-3">Patient</th>
-                  <th className="px-4 py-3">Test</th>
-                  <th className="px-4 py-3">Ordered By</th>
-                  <th className="px-4 py-3">Date Ordered</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Result</th>
+                    <th className="px-4 py-3">Patient</th>
+                    <th className="px-4 py-3">Test</th>
+                    <th className="px-4 py-3">Ordered By</th>
+                    <th className="px-4 py-3">Date Ordered</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Result</th>
+                    <th className="px-4 py-3">Follow up Plan</th>
                   <th className="px-4 py-3">Actions</th>
                 </tr>
               </thead>
@@ -169,11 +216,13 @@ const LabTests = () => {
                     <td className="p-3 text-gray-700">
                       {test.result ? test.result : <span className="italic text-gray-400">not entered</span>}
                     </td>
-
+                    <td className="p-3 text-blue-500 cursor-pointer text-base pl-10" onClick={() => router.push(`/dashboard/follow-up/1`)}>
+                      view
+                    </td>
                     <td className="p-3 text-gray-700">
                       {test.status === 'pending' && (
                         <button
-                          className="text-sm cursor-pointer text-blue-600 hover:underline"
+                          className="text-base font-medium cursor-pointer rounded bg-blue-50 p-1 text-blue-500 hover:underline"
                           onClick={() => {
                             setEditingTest(test);
                             setResultValue('');

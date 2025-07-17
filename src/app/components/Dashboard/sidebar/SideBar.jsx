@@ -137,10 +137,11 @@ const SideBar = ({ isExpanded, setIsExpanded }) => {
             <div className="ml-12 mt-2 space-y-1 text-sm font-poppins">
               {[
                 { name: 'All Patients', path: '/dashboard/patients/' },
-                { name: 'Care Plans', path: '/dashboard/patients/care-plans' },
                 // { name: 'Risk Assessment', path: '/dashboard/patients/new' },
+                { name: 'Lab Tests', path: '/dashboard/lab-tests/' },
                 { name: 'Recommendations', path: '/dashboard/recommendations/' },
-                {name:'Lab Tests',path: '/dashboard/lab-tests/'},
+                { name: 'Follow Up Plans', path: '/dashboard/patients/care-plans' },
+                
                 
 
               ].map((subItem) => (

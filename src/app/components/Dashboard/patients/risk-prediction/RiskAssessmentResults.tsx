@@ -117,7 +117,7 @@ const RiskAssessmentResults = () => {
       if (!recRes.ok) throw new Error('Failed to save recommendation');
       const recommendation = await recRes.json();
 
-      // 👉 Create lab tests (only for lab-related selected actions)
+      // Create lab tests (only for lab-related selected actions)
       for (const test of selectedLabTests) {
         const serviceRes = await fetch(`http://127.0.0.1:8000/services/by-name/${encodeURIComponent(test)}`);
         if (!serviceRes.ok) throw new Error(`Service "${test}" not found`);
@@ -142,7 +142,7 @@ const RiskAssessmentResults = () => {
         }
       }
 
-      // ✅ Move billing outside the lab loop
+ 
       const servicesToBill = ['Consultation', ...selectedTests];
 
       for (const serviceName of servicesToBill) {
@@ -172,7 +172,7 @@ const RiskAssessmentResults = () => {
           patient_amount: cost.out_of_pocket || 0,
         };
 
-        await fetch('http://127.0.0.1:8000/patient-billable-items/', {
+        await fetch('http://127.0.0.1:8000/billable-items/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(billItem),
@@ -417,7 +417,7 @@ const RiskAssessmentResults = () => {
               }}
               className="bg-green-600 cursor-pointer hover:bg-green-700 text-white px-6 py-3 rounded-md transition duration-150"
             >
-              Confirm Selected Test(s)
+              Confirm Selected action(s)
             </button>
 
             <button
