@@ -27,6 +27,7 @@ interface Service {
 
 interface LabTest {
   id: number;
+  follow_up_id: number;
   patient: Patient | null;
   ordered_by: Doctor | null;
   service: Service | null;
@@ -107,7 +108,7 @@ const LabTests = () => {
             const riskRes = await fetch(`http://127.0.0.1:8000/patients/risk-prediction/${updated.patient?.id}`);
             const riskPrediction = riskRes.ok ? await riskRes.json() : null;
 
-            await fetch('http://127.0.0.1:8000/patients/followup/', {
+            const followupRes = await fetch('http://127.0.0.1:8000/patients/followup/', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -119,13 +120,30 @@ const LabTests = () => {
                 smoking_status: profile.smoking_status,
                 stds_history: profile.stds_history,
                 hpv_current_test_result: testName === 'HPV DNA Test' ? updated.result : profile.hpv_result,
-                pap_smear_result: testName === 'Pap Smear' ? updated.result : 'Negative', 
-                screening_type_last: updated.service?.name, 
+                pap_smear_result: testName === 'Pap Smear' ? updated.result : 'Negative',
+                screening_type_last: updated.service?.name,
               }),
             });
-            router.push(`/dashboard/follow-up/${profile.patient.id}?patient=${profile.patient.id}`)
 
-          } catch (err) {
+            if (!followupRes.ok) throw new Error('Failed to create follow-up');
+            const followUp = await followupRes.json();
+
+            console.log("Sending follow_up_id:", followUp.id);
+
+            await fetch(`http://127.0.0.1:8000/lab-tests/${updated.id}/assign-follow-up`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                follow_up_id: followUp.id,
+              }),
+            });
+
+            router.push(`/dashboard/follow-up/${followUp.id}?patient=${profile.patient.id}`);
+          }
+          
+          catch (err) {
             console.error('Error triggering follow-up:', err);
           }
         }
@@ -216,9 +234,21 @@ const LabTests = () => {
                     <td className="p-3 text-gray-700">
                       {test.result ? test.result : <span className="italic text-gray-400">not entered</span>}
                     </td>
-                    <td className="p-3 text-blue-500 cursor-pointer text-base pl-10" onClick={() => router.push(`/dashboard/follow-up/1`)}>
-                      view
+                    <td className="p-3 text-base pl-7">
+                      {test.follow_up_id ? (
+                        <span
+                          className="text-blue-500 cursor-pointer"
+                          onClick={() =>
+                            router.push(`/dashboard/follow-up/${test.patient?.id}/view?follow_up=${test.follow_up_id}`)
+                          }
+                        >
+                          view
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">not added</span>
+                      )}
                     </td>
+
                     <td className="p-3 text-gray-700">
                       {test.status === 'pending' && (
                         <button

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { CheckCircle, Save, AlertCircle } from 'lucide-react';
 import DashboardLayout from '../DashboardLayout';
 import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 export interface FollowUpRecommendation {
   id: number;
   patient_id: number;
@@ -35,7 +36,7 @@ const FollowUpReviewPage = () => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [planType, setPlanType] = useState<'suggested' | 'custom'>('suggested');
-
+  const router = useRouter()
   useEffect(() => {
     const fetchFollowUp = async () => {
       try {
@@ -61,14 +62,34 @@ const FollowUpReviewPage = () => {
 
   const handleSave = async () => {
     if (!followUp) return;
+
+    const finalPlan = planType === 'suggested' ? selectedOption : customPlan;
+
+    if (!finalPlan?.trim()) {
+      alert('Please provide or select a treatment plan.');
+      return;
+    }
+
     setSaving(true);
     try {
-      const finalPlan = planType === 'suggested' ? selectedOption : customPlan;
-      console.log('Saving plan:', finalPlan);
-      // TODO: Add backend save logic here (PATCH request)
+      const res = await fetch(`http://127.0.0.1:8000/patients/followup/${followUp.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          final_plan: finalPlan,
+          finalized_by_user_id: 1, // TODO: Replace with the actual logged-in user ID
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to save the treatment plan');
+
       alert('Treatment plan saved successfully!');
+      router.push('/dashboard/patients');
     } catch (err) {
       console.error('Error saving plan:', err);
+      alert('An error occurred while saving the plan.');
     } finally {
       setSaving(false);
     }
