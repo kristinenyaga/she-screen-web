@@ -12,7 +12,7 @@ import DashboardLayout from './DashboardLayout';
 const Overview = () => {
   const kpiData = {
     totalPatients: 5,
-    highRiskPatients: 2,
+    highRiskPatients: 1,
     labTestsOrdered: 2,
     labTestsCompleted: 3,
   };

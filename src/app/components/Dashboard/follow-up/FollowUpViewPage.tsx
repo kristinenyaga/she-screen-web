@@ -111,7 +111,7 @@ const FollowUpViewPage = () => {
         <div className="space-y-6 w-[80%]">
           <div className="flex items-center gap-3 mb-8">
             <h1 className="text-2xl font-semibold text-gray-800">
-              Follow-Up Plan for Patient #{followUp.patient_id}
+              Follow-Up Plan 
             </h1>
           </div>
 

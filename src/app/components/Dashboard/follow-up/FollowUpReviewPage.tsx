@@ -144,7 +144,7 @@ const FollowUpReviewPage = () => {
       <div className="min-h-screen  font-inter to-blue-50">
         <div className="space-y-6 w-[80%]">
           <div className="flex items-center gap-3 mb-8">
-            <h1 className="text-2xl font-semibold text-gray-800">Christine Follow-Up Plan</h1>
+            <h1 className="text-2xl font-semibold text-gray-800">Follow-Up Plan</h1>
           </div>
 
           <div className="bg-white rounded border border-gray-100 overflow-hidden">
