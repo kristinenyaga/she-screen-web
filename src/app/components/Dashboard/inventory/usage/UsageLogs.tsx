@@ -2,6 +2,7 @@
 import React from 'react';
 import DashboardLayout from '../../DashboardLayout';
 import { FaSearch } from 'react-icons/fa';
+import AdminLayout from '@/app/components/admin/AdminLayout';
 
 // Mock data for usage logs
 const usageLogs = [
@@ -36,9 +37,8 @@ const usageLogs = [
 
 const UsageLogs = () => {
   return (
-    <DashboardLayout>
+    <AdminLayout>
       <div className="font-poppins w-[90%]">
-        {/* Header */}
         <div className="mb-6 mt-1">
           <h1 className="text-[22px] font-medium text-gray-700 mb-1">
             Inventory Usage Logs
@@ -60,7 +60,6 @@ const UsageLogs = () => {
           </div>
         </div>
 
-        {/* Table */}
         <div className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm overflow-x-auto">
           <table className="min-w-full text-sm text-left text-gray-700">
             <thead className="border-b border-gray-200 text-xs uppercase">
@@ -86,7 +85,7 @@ const UsageLogs = () => {
           </table>
         </div>
       </div>
-    </DashboardLayout>
+    </AdminLayout>
   );
 };
 

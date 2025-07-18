@@ -88,19 +88,6 @@ const EditModal: React.FC<EditModalProps> = ({ open, handleClose, mode, activeRe
           onChange={handleChange}
         />
 
-        <TextField
-          select
-          fullWidth
-          margin="normal"
-          label="Category"
-          name="type"
-          value={formData.type}
-          onChange={handleChange}
-        >
-          <MenuItem value="Equipment">Equipment</MenuItem>
-          <MenuItem value="Consumable">Consumable</MenuItem>
-          <MenuItem value="Medication">Medication</MenuItem>
-        </TextField>
 
         <TextField
           fullWidth

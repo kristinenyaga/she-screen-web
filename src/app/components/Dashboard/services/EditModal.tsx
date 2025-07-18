@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -19,117 +18,133 @@ const style = {
   p: 4,
 };
 
-type Resource = {
+type Service = {
   id: number,
   name: string,
-  type: string,
-  quantity: number,
-  unit: string,
-  lowThreshold: number
+  slug: string,
+  category: 'screening' | 'vaccination' | 'treatment' | 'consultation';
+}
+
+type ServiceCost = {
+  id: number,
+  service_id: number,
+  base_cost: number,
+  nhif_covered: boolean,
+  out_of_pocket: number,
+  insurance_copay_amount: number,
 }
 
 type EditModalProps = {
   open: boolean,
-  handleClose: () => void
+  handleClose: () => void,
   mode: 'add' | 'edit';
-  activeResource: Resource | null;
-  onSubmit: (resource: Resource) => void;
+  activeCost: ServiceCost | null;
+  services: Service[];
+  onSubmit: (cost: ServiceCost) => void;
 }
 
-const EditModal: React.FC<EditModalProps> = ({ open, handleClose, mode, activeResource, onSubmit }) => {
-  const [formData, setFormData] = React.useState({
-    id: activeResource?.id || Date.now(),
-    name: activeResource?.name || '',
-    type: activeResource?.type || '',
-    quantity: activeResource?.quantity || 0,
-    unit: activeResource?.unit || '',
-    lowThreshold: activeResource?.lowThreshold || 0,
-  })
+const EditServiceCostModal: React.FC<EditModalProps> = ({ open, handleClose, mode, activeCost, services, onSubmit }) => {
+  const [formData, setFormData] = React.useState<ServiceCost>({
+    id: Date.now(),
+    service_id: services[0]?.id || 0,
+    base_cost: 0,
+    nhif_covered: false,
+    out_of_pocket: 0,
+    insurance_copay_amount: 0
+  });
+
   React.useEffect(() => {
-    if (mode === 'edit' && activeResource) {
-      setFormData(activeResource);
+    if (mode === 'edit' && activeCost) {
+      setFormData(activeCost);
     } else {
       setFormData({
         id: Date.now(),
-        name: '',
-        type: '',
-        quantity: 0,
-        unit: '',
-        lowThreshold: 0,
+        service_id: services[0]?.id || 0,
+        base_cost: 0,
+        nhif_covered: false,
+        out_of_pocket: 0,
+        insurance_copay_amount: 0
       });
     }
-  }, [mode, activeResource]);
+  }, [mode, activeCost, services]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : name === 'service_id' || name === 'base_cost' || name === 'out_of_pocket' || name === 'insurance_copay_amount' ? Number(value) : value
+    }));
+  };
 
   const handleSubmit = () => {
     onSubmit(formData);
     handleClose();
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === 'quantity' || name === 'lowThreshold' ? Number(value) : value
-    }))
-  }
+  console.log(activeCost)
+
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
         <Typography variant="h6" mb={2}>
-          {mode === 'edit' ? 'Edit Resource' : 'Add New Resource'}
+          {mode === 'edit' ? 'Edit Service Cost' : 'Add New Service Cost'}
         </Typography>
-
-        <TextField
-          fullWidth
-          margin="normal"
-          label="Name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-        />
 
         <TextField
           select
           fullWidth
           margin="normal"
-          label="Category"
-          name="type"
-          value={formData.type}
+          label="Service"
+          name="service_id"
+          value={formData.service_id}
           onChange={handleChange}
         >
-          <MenuItem value="Equipment">Equipment</MenuItem>
-          <MenuItem value="Consumable">Consumable</MenuItem>
-          <MenuItem value="Medication">Medication</MenuItem>
+          {services.map((service) => (
+            <MenuItem key={service.id} value={service.id}>{service.name}</MenuItem>
+          ))}
         </TextField>
 
         <TextField
           fullWidth
           margin="normal"
+          label="Base Cost"
           type="number"
-          label="Quantity"
-          name="quantity"
-          value={formData.quantity}
+          name="base_cost"
+          value={formData.base_cost}
           onChange={handleChange}
         />
 
         <TextField
           fullWidth
           margin="normal"
-          label="Unit"
-          name="unit"
-          value={formData.unit}
+          label="Out-of-Pocket Cost"
+          type="number"
+          name="out_of_pocket"
+          value={formData.out_of_pocket}
           onChange={handleChange}
         />
 
         <TextField
           fullWidth
           margin="normal"
+          label="Insurance Co-pay"
           type="number"
-          label="Low Stock Threshold"
-          name="lowThreshold"
-          value={formData.lowThreshold}
+          name="insurance_copay_amount"
+          value={formData.insurance_copay_amount}
           onChange={handleChange}
         />
+
+        <Box mt={2}>
+          <label>
+            <input
+              type="checkbox"
+              name="nhif_covered"
+              checked={formData.nhif_covered}
+              onChange={handleChange}
+            />{' '}
+            NHIF Covered
+          </label>
+        </Box>
 
         <Box mt={3} display="flex" justifyContent="flex-end" gap={2}>
           <Button onClick={handleClose} variant="outlined" color="inherit">
@@ -141,7 +156,7 @@ const EditModal: React.FC<EditModalProps> = ({ open, handleClose, mode, activeRe
         </Box>
       </Box>
     </Modal>
-  )
-}
+  );
+};
 
-export default EditModal
+export default EditServiceCostModal;

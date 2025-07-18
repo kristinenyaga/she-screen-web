@@ -18,7 +18,8 @@ const LoginPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    const email = form.email
+    console.log(email)
     const formData = new URLSearchParams();
     formData.append("username", form.email); 
     formData.append("password", form.password);
@@ -37,7 +38,14 @@ const LoginPage = () => {
 
       toast.success("Login successful");
       setTimeout(() => {
-        router.push("/dashboard/overview");
+
+        if (email === "nyagakristine@gmail.com") {
+          router.push("/admin/overview");
+        }
+        else {
+          router.push("/dashboard/overview");
+
+        }
       }, 500);
     } catch (err) {
       toast.error((err as Error).message || "Something went wrong");

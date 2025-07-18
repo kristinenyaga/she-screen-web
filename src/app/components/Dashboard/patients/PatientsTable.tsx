@@ -64,9 +64,6 @@ const PatientTable = () => {
             <th className="px-6 py-3">Phone</th>
             <th className="px-6 py-3">Age</th>
             <th className="px-6 py-3">Risk Level</th>
-            <th className="px-6 py-3">Follow up Plan</th>
-            <th className="px-6 py-3">Pending Test</th>
-            <th className="px-6 py-3">Test Date</th>
             <th className="px-6 py-3 text-center">Actions</th>
           </tr>
         </thead>
@@ -92,9 +89,6 @@ const PatientTable = () => {
                     <span className="text-gray-400 italic">Not Assessed</span>
                   )}
                 </td>
-                <td className="px-6 py-4 text-gray-500 italic">—</td>
-                <td className="px-6 py-4 text-gray-400">—</td>
-                <td className="px-6 py-4 text-gray-400">—</td>
                 <td className="px-6 py-4 text-center space-x-2">
                   <button onClick={() =>
                     router.push(`/dashboard/patients/${p.id}`)

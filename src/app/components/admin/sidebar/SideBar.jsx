@@ -71,8 +71,8 @@ const SideBar = ({ isExpanded, setIsExpanded }) => {
               <FaUser className="text-white text-sm" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-800 truncate">Dr. Christine Nyaga</p>
-              <p className="text-xs text-slate-600 truncate">Doctor</p>
+              <p className="text-sm font-medium text-slate-800 truncate">Jane Njoroge</p>
+              <p className="text-xs text-slate-600 truncate">Admin</p>
             </div>
           </div>
         </div>
@@ -80,7 +80,9 @@ const SideBar = ({ isExpanded, setIsExpanded }) => {
 
       <nav className="flex-1 py-6 px-3 font-poppins space-y-2 overflow-y-auto">
         {[
-          { name: 'Overview', path: '/dashboard/overview', icon: <FaHome size={20} /> },
+          { name: 'Overview', path: '/admin/overview', icon: <FaHome size={20} /> },
+          { name: 'Revenue', path: '/admin/biling', icon: <FaHome size={20} /> },
+          { name: 'Services', path: '/admin/services', icon: <FaCalendarCheck size={20} /> },
         ].map((item) => {
           const isActive = pathname === item.path;
           return (
@@ -109,7 +111,7 @@ const SideBar = ({ isExpanded, setIsExpanded }) => {
           );
         })}
 
-        <div>
+        {/* <div>
           <button
             onClick={() => setPatientsOpen(!patientsOpen)}
             className={`group w-full flex cursor-pointer items-center px-3 py-3.5 rounded-xl transition-all duration-200 ${
@@ -158,7 +160,7 @@ const SideBar = ({ isExpanded, setIsExpanded }) => {
               ))}
             </div>
           )}
-        </div>
+        </div> */}
 
         <div>
           <button
