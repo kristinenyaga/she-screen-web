@@ -12,6 +12,14 @@ export type Resource = {
   unit_of_measure: string,
   low_stock_threshold: number
 };
+export type ResourceFormData = {
+  id: number; 
+  name: string;
+  type: string;
+  quantity: number;
+  unit: string;
+  lowThreshold: number;
+};
 
 const InventoryManagement = () => {
   const [resources, setResources] = useState<Resource[]>([]);
@@ -32,7 +40,7 @@ const InventoryManagement = () => {
     fetchResources();
   }, []);
 
-  const handleSubmit = async (resource: any) => {
+  const handleSubmit = async (resource: ResourceFormData) => {
     const normalizedResource: Resource = {
       id: resource.id,
       name: resource.name,

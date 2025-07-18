@@ -9,6 +9,22 @@ interface ServiceObj {
   name: string;
   id: number;
 }
+type ServiceCostFormData = {
+  id?: number;
+  service_id: number;
+  base_cost: number;
+  nhif_covered: boolean;
+  out_of_pocket: number;
+  insurance_copay_amount: number;
+};
+
+interface Service {
+  id: number;
+  name: string;
+  slug: string;
+  category: 'screening' | 'vaccination' | string;
+}
+
 
 interface ServiceCost {
   id: number;
@@ -17,12 +33,13 @@ interface ServiceCost {
   insurance_copay_amount: number;
   out_of_pocket: number;
   service: ServiceObj;
-  service_id?: number; // for editing
+  service_id: number;
 }
+
 
 const ServiceCost = () => {
   const [serviceCosts, setServiceCosts] = useState<ServiceCost[]>([]);
-  const [services, setServices] = useState<ServiceObj[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
 
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'add' | 'edit'>('add');
@@ -82,7 +99,7 @@ const ServiceCost = () => {
   };
 
 
-  const handleModalSubmit = async (formData: any) => {
+  const handleModalSubmit = async (formData:ServiceCostFormData) => {
     const token = sessionStorage.getItem("token");
     const url =
       mode === 'add'

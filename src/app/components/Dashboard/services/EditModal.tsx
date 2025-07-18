@@ -22,7 +22,7 @@ type Service = {
   id: number,
   name: string,
   slug: string,
-  category: 'screening' | 'vaccination' | 'treatment' | 'consultation';
+  category: 'screening' | 'vaccination' | string;
 }
 
 type ServiceCost = {

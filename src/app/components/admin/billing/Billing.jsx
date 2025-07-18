@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from 'react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, ResponsiveContainer, Area, AreaChart } from 'recharts';
-import { DollarSign, CreditCard, Clock, TrendingUp, AlertCircle, CheckCircle, XCircle, Search, Filter, Download, Eye, ChevronDown, Calendar, ArrowUp, ArrowDown } from 'lucide-react';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { DollarSign, Clock, CheckCircle, Search, Filter, Download, Eye, ChevronDown, Calendar, ArrowUp, ArrowDown } from 'lucide-react';
 import AdminLayout from '../AdminLayout';
 
 const Billing = () => {
@@ -16,14 +16,6 @@ const Billing = () => {
     totalCollected: 3200,
 
   };
-
-  const serviceBilling = [
-    { service: 'Pap Smear', totalBilled: 660000, collected: 580000, outstanding: 80000 },
-    { service: 'HPV DNA Test', totalBilled: 520000, collected: 450000, outstanding: 70000 },
-    { service: 'Colposcopy', totalBilled: 480000, collected: 420000, outstanding: 60000 },
-    { service: 'HPV Vaccination', totalBilled: 420000, collected: 380000, outstanding: 40000 },
-    { service: 'Biopsy', totalBilled: 380000, collected: 320000, outstanding: 60000 }
-  ];
 
   const monthlyTrends = [
     { month: 'June', collected: 1000, outstanding: 0 },

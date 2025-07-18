@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import DashboardLayout from '../../DashboardLayout';
 import { FaSearch } from 'react-icons/fa';
 import AdminLayout from '@/app/components/admin/AdminLayout';
 

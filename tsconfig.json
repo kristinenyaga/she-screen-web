@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/components/Dashboard/Overview.jsx", "src/app/components/admin/Overview.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/components/Dashboard/Overview.jsx", "src/app/components/admin/Overview.jsx", "src/app/components/admin/billing/Billing.jsx"],
   "exclude": ["node_modules"]
 }
