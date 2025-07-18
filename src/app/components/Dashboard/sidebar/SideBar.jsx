@@ -27,7 +27,7 @@ const SideBar = ({ isExpanded, setIsExpanded }) => {
   const handleLogout = () => {
     sessionStorage.clear();
     localStorage.removeItem('role');
-    router.push('/welcome');
+    router.push('/');
   };
 
   const handleMouseEnter = () => {

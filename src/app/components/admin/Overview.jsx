@@ -10,11 +10,11 @@ const Overview = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
 
   const kpiData = {
-    totalRevenue: 1000,
+    totalRevenue: 3200,
     unpaidInvoices: 0,
     totalLabTests: 3,
     lowStockAlerts: 2,
-    totalPatients: 6
+    totalPatients: 5
   };
 
   const revenueByCategory = [

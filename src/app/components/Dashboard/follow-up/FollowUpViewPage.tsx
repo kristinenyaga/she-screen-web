@@ -10,6 +10,12 @@ interface FinalizedBy {
   last_name: string;
 }
 
+interface Patient {
+  id: number;
+  first_name: string;
+  last_name: string;
+}
+
 interface FollowUpRecommendation {
   id: number;
   patient_id: number;
@@ -33,6 +39,7 @@ interface FollowUpRecommendation {
   finalized_by_user_id: number;
   finalized_by: FinalizedBy;
   created_at: string;
+  patient:Patient
 }
 
 const FollowUpViewPage = () => {
@@ -111,7 +118,7 @@ const FollowUpViewPage = () => {
         <div className="space-y-6 w-[80%]">
           <div className="flex items-center gap-3 mb-8">
             <h1 className="text-2xl font-semibold text-gray-800">
-              Follow-Up Plan 
+              Follow-Up Plan for {followUp.patient.first_name} {followUp.patient.last_name}
             </h1>
           </div>
 
