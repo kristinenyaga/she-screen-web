@@ -77,7 +77,12 @@ const Overview = () => {
       </div>
     </div>
   );
-
+  const getCurrentFormattedDate = () => {
+    const today = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return today.toLocaleDateString('en-US', options);
+    
+};
   return (
     <AdminLayout>
       <div className="min-h-screen font-poppins">
@@ -91,7 +96,7 @@ const Overview = () => {
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm text-gray-500">Today</p>
-              <p className="font-semibold text-gray-800">Friday, July 18, 2025</p>
+              <p className="font-semibold text-gray-800">{getCurrentFormattedDate()}</p>
             </div>
           </div>
         </div>
