@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -19,6 +19,7 @@ import { MdInventory } from 'react-icons/md';
 import Image from 'next/image';
 
 const SideBar = ({ isExpanded, setIsExpanded }) => {
+  const [user, setUser] = useState();
   const pathname = usePathname();
   const router = useRouter();
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith('/dashboard/inventory'));
@@ -39,6 +40,29 @@ const SideBar = ({ isExpanded, setIsExpanded }) => {
     setInventoryOpen(false);
     setPatientsOpen(false);
   };
+useEffect(() => {
+  const token = sessionStorage.getItem("token");
+  if (!token) return;
+
+  fetch("http://localhost:8000/users/me", { 
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Failed to fetch user info");
+      }
+      return res.json();
+    })
+    .then((data) => {
+      setUser(data);
+    })
+    .catch((err) => {
+      console.error("Failed to fetch user profile:", err);
+    });
+}, []);
 
   return (
     <aside 
@@ -51,7 +75,7 @@ const SideBar = ({ isExpanded, setIsExpanded }) => {
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-center space-x-3">
           <div className="">
-            <Image src="/health.png" width={40} height={40} />
+            <Image src="/health.png" width={40} height={40} alt="logo" />
           </div>
           {isExpanded && (
             <div className="text-center overflow-hidden">
@@ -71,8 +95,8 @@ const SideBar = ({ isExpanded, setIsExpanded }) => {
               <FaUser className="text-white text-sm" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-800 truncate">Dr. Christine Nyaga</p>
-              <p className="text-xs text-slate-600 truncate">Doctor</p>
+              <p className="text-sm font-medium text-slate-800 truncate">{user.first_name} { user.last_name}</p>
+              <p className="text-xs text-slate-600 truncate capitalize mt-1">{user.role}</p>
             </div>
           </div>
         </div>
@@ -139,9 +163,6 @@ const SideBar = ({ isExpanded, setIsExpanded }) => {
                 // { name: 'Risk Assessment', path: '/dashboard/patients/new' },
                 { name: 'Lab Tests', path: '/dashboard/lab-tests/' },
                 { name: 'Recommendations', path: '/dashboard/recommendations/' },
-                { name: 'Follow Up Plans', path: '/dashboard/patients/care-plans' },
-                
-                
 
               ].map((subItem) => (
                 <Link

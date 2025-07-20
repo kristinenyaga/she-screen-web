@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import {
   Users, AlertTriangle, TestTube, Calendar, Shield, FileText, Activity
 } from 'lucide-react';
@@ -10,20 +10,111 @@ import {
 import DashboardLayout from './DashboardLayout';
 
 const Overview = () => {
+  const [tests, setTests] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [recommendations, setRecommendations] = useState([])
+  const [riskAssessment,setRiskAssessments] = useState([])
+  const riskLevels = ['Low', 'Medium', 'High'];
+
   const kpiData = {
-    totalPatients: 5,
-    highRiskPatients: 1,
-    labTestsOrdered: 2,
-    labTestsCompleted: 3,
+    totalPatients: patients.length,
+    highRiskPatients: patients.filter(p => p.risk_level === 'High').length,
+    labTestsOrdered: tests.length,
+    labTestsCompleted: tests.filter(t => t.status === 'completed').length,
   };
+  
+  
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/patients');
+        const data = await res.json();
+        setPatients(data);
+      } catch (err) {
+        console.error('Failed to fetch patients', err);
+      }
+    };
+      fetchPatients();
+  }, []);
+  
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/recommendations');
+        const data = await res.json();
+        setRecommendations(data);
+      } catch (err) {
+        console.error('Failed to fetch patients', err);
+      }
+    };
+  
+      fetchRecommendations();
+  }, []);
 
-  const riskDistribution = [
-    { name: 'Low Risk', value: 2, color: '#10b981' },
-    { name: 'Medium Risk', value: 2, color: '#f59e0b' },
-    { name: 'High Risk', value: 1, color: '#ef4444' },
-  ];
+  useEffect(() => {
+    const fetchRiskAssessmnet = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/patients/get-risk-assessments');
+        const data = await res.json();
+        setRiskAssessments(data);
+      } catch (err) {
+        console.error('Failed to fetch patients', err);
+      }
+    };
+  
+      fetchRiskAssessmnet();
+  }, []);
+  
+  const riskDistribution = riskLevels.map((level) => ({
+    name: `${level} Risk`,
+    value: patients.filter(p => p.risk_level === level).length,
+    color:
+      level === 'Low' ? '#10b981' :
+        level === 'Medium' ? '#f59e0b' :
+          '#ef4444'
+  }));
 
 
+  useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/lab-tests');
+        const data = await res.json();
+        setTests(data);
+      } catch (err) {
+        console.error('Failed to fetch lab tests', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchTests();
+  }, []);
+
+  const computeRecommendationTypes = () => {
+  const counts = {};
+
+  riskAssessment.forEach((item) => {
+    const recs = item?.prediction?.screening_recommendations?.recommended_screenings || [];
+    recs.forEach((rec) => {
+      counts[rec] = (counts[rec] || 0) + 1;
+    });
+  });
+
+  return Object.entries(counts).map(([name, count]) => ({
+    name,
+    count,
+    color:
+      name.includes('Pap') ? '#3BA1AF' :
+      name.includes('HPV DNA') ? '#10b981' :
+      name.includes('Vaccin') ? '#F97316' :
+      '#6366f1' // fallback color
+  }));
+};
+
+const recommendationTypes = computeRecommendationTypes();
+
+  
 
   const formatNumber = (num) => num.toLocaleString();
 
@@ -40,15 +131,6 @@ const Overview = () => {
       </div>
     </div>
   );
-
-  const recommendationTypes = [
-  { name: 'Pap Smear', count: 2, color: '#3BA1AF' },
-  { name: 'HPV DNA Test', count: 3, color: '#10b981' },
-  { name: 'HPV Vaccination', count: 1, color: '#F97316' }
-];
-
-
-
 
   return (
     <DashboardLayout>
