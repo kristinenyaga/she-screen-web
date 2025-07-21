@@ -108,7 +108,7 @@ const Overview = () => {
       name.includes('Pap') ? '#3BA1AF' :
       name.includes('HPV DNA') ? '#10b981' :
       name.includes('Vaccin') ? '#F97316' :
-      '#6366f1' // fallback color
+      '#6366f1' 
   }));
 };
 

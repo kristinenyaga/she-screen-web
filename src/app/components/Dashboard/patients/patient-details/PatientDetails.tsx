@@ -10,7 +10,6 @@ import {
   Shield,
   FlaskConical,
   FileText,
-  Clock
 } from 'lucide-react';
 import DashboardLayout from '../../DashboardLayout';
 import RiskAssessmentView from './RiskAssessmentview';
@@ -21,7 +20,6 @@ const tabs = [
   { id: 'Additional Information', label: 'Additional Info', icon: <FileText className="w-4 h-4" /> },
   { id: 'Risk Assessment', label: 'Risk Assessment', icon: <Shield className="w-4 h-4" /> },
   { id: 'Lab Tests', label: 'Lab Tests', icon: <FlaskConical className="w-4 h-4" /> },
-  { id: 'Follow Up Plans', label: 'Follow Up', icon: <Clock className="w-4 h-4" /> }
 ];
 
 
@@ -141,7 +139,7 @@ const PatientDetails = () => {
                     <Phone className="w-5 h-5 text-[#3BA1AF]" />
                     <div>
                       <p className="text-sm text-gray-600">Phone_number</p>
-                      <p className="font-medium">{patient.area_of_residence}</p>
+                      <p className="font-medium">{patient.phone_number}</p>
                     </div>
                   </div>
                 </div>

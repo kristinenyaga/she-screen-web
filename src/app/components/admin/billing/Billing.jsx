@@ -1,55 +1,77 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { DollarSign, Clock, CheckCircle, Search, Filter, Download, Eye, ChevronDown, Calendar, ArrowUp, ArrowDown } from 'lucide-react';
 import AdminLayout from '../AdminLayout';
+import PatientBillsTable from './PatientBillsTable';
 
 const Billing = () => {
-  const [dateFilter, setDateFilter] = useState('last-month');
-  const [paymentStatus, setPaymentStatus] = useState('all');
+ const [bills, setBills] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage] = useState(10);
+  const [dateFilter, setDateFilter] = useState('last-month');
 
-  // KPI Data
+  useEffect(() => {
+    const fetchBills = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/billable-items');
+        const data = await res.json();
+        setBills(data);
+      } catch (err) {
+        console.error('Failed to fetch lab tests', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBills();
+  }, []);
+
   const kpiData = {
-    totalCollected: 3200,
-
+    totalCollected: bills.reduce((sum, bill) =>
+      bill.paid ? sum + (bill.patient_amount + (bill.nhif_amount || 0)) : sum, 0),
+    totalBilled: bills.reduce((sum, bill) => sum + bill.base_cost, 0),
+    totalOutstanding: bills.reduce((sum, bill) =>
+      !bill.paid ? sum + (bill.patient_amount + (bill.nhif_amount || 0)) : sum, 0),
+    totalBills: bills.length,
   };
 
-  const monthlyTrends = [
-    { month: 'June', collected: 1000, outstanding: 0 },
-    { month: 'July', collected: 1200, outstanding: 0 },
-  ];
+  const monthlyTrends = bills.reduce((acc, bill) => {
+    const date = new Date(bill.date_created);
+    const month = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+    const key = month;
 
-  const patientBills = [
-    {
-      id: 'INV-2025-001',
-      patientName: 'Mary Wanjiku',
-      patientId: 'P-1001',
-      service: 'Pap Smear Consultation',
-      totalAmount: 2500,
-      nhifAmount: 1300,
-      patientAmount: 1200,
-      paid: true,
-      paymentMethod: 'NHIF + mpesa',
-      dateCreated: '2025-06-30',
-      datePaid: '2025-06-30'
-    },
-    {
-      id: 'INV-2025-002',
-      patientName: 'Esther Nyumu',
-      patientId: 'P-1002',
-      service: 'Pap Smear, Consultation',
-      totalAmount: 1200,
-      nhifAmount: 1300,
-      patientAmount: 1200,
-      paid: false,
-      paymentMethod: '',
-      dateCreated: '2025-07-19',
-      datePaid: null
-    },
-  ];
+    const collected = bill.paid ? bill.patient_amount + (bill.nhif_amount || 0) : 0;
+    const outstanding = bill.paid ? 0 : bill.patient_amount + (bill.nhif_amount || 0);
+
+    const existing = acc.find(item => item.month === key);
+    if (existing) {
+      existing.collected += collected;
+      existing.outstanding += outstanding;
+    } else {
+      acc.push({ month: key, collected, outstanding });
+    }
+
+    return acc;
+  }, []);
+
+  const patientBills = bills.map(bill => ({
+    id: `INV-2025-${bill.id.toString().padStart(3, '0')}`,
+    patientName: `${bill.patient.first_name} ${bill.patient.last_name}`,
+    patientId: `P-${bill.patient.patient_code}`,
+    service: bill.service.name,
+    totalAmount: bill.base_cost,
+    nhifAmount: bill.nhif_amount || 0,
+    patientAmount: bill.patient_amount,
+    paid: bill.paid,
+    paymentMethod: bill.nhif_covered ? 'NHIF' : 'Cash',
+    dateCreated: bill.date_created,
+    datePaid: bill.paid ? bill.date_created : null
+  }));
+
+  if (loading) return <div className="p-4 text-center">Loading billing data...</div>;
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-KE', {
@@ -128,7 +150,6 @@ const Billing = () => {
       </div>
     </div>
   );
-
   return (
     <AdminLayout>
       <div className="min-h-screen font-inter w-[90%]">
@@ -229,8 +250,6 @@ const Billing = () => {
                     <input
                       type="text"
                       placeholder="Search bills..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 focus:bg-white transition-colors"
                     />
                   </div>
@@ -251,65 +270,8 @@ const Billing = () => {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Invoice</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Service</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total Amount</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">NHIF</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient Pay</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-50">
-                  {paginatedBills.map((bill) => (
-                    <tr key={bill.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 hover:text-blue-700">
-                        {bill.id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{bill.patientName}</div>
-                          <div className="text-sm text-gray-500">{bill.patientId}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{bill.service}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                        {formatCurrency(bill.totalAmount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(bill.nhifAmount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(bill.patientAmount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(bill.paid)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(bill.dateCreated)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center gap-2">
-                          <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors">
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button className="p-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors">
-                            <Download className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
+            <PatientBillsTable paginatedBills={paginatedBills} />
+p
             <div className="bg-white px-6 py-4 flex items-center justify-between border-t border-gray-100">
               <div className="flex-1 flex justify-between sm:hidden">
                 <button

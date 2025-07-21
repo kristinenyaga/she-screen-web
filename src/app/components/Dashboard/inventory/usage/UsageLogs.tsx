@@ -3,7 +3,6 @@ import React from 'react';
 import { FaSearch } from 'react-icons/fa';
 import AdminLayout from '@/app/components/admin/AdminLayout';
 
-// Mock data for usage logs
 const usageLogs = [
   {
     id: 1,

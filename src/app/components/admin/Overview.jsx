@@ -1,59 +1,84 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { DollarSign, FileText, TestTube, Shield, AlertTriangle, Users, Calendar, TrendingUp, Package, Activity } from 'lucide-react';
 import AdminLayout from './AdminLayout';
 
 const Overview = () => {
-  const [dateFilter, setDateFilter] = useState('last-month');
-  const [paymentFilter, setPaymentFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-
+  const [tests, setTests] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [recommendations, setRecommendations] = useState([])
+  const [riskAssessment, setRiskAssessments] = useState([])
+  const [loading, setLoading] = useState(true);
+  const [resources, setResources] = useState([])
+  const [bills, setBills] = useState([])
+  const [user, setUser] = useState();
+  
   const kpiData = {
-    totalRevenue: 3200,
-    unpaidInvoices: 0,
-    totalLabTests: 3,
-    lowStockAlerts: 2,
-    totalPatients: 5
+    totalRevenue: bills.reduce((sum, bill) => sum + (bill.amount || 0), 0),
+    unpaidInvoices: bills.filter(bill => bill.paid === false).length,
+    totalLabTests: tests.length,
+    lowStockAlerts: resources.filter(resource => resource.quantity_available <= resource.low_stock_threshold).length,
+    totalPatients: patients.length
   };
 
-  const revenueByCategory = [
-    { name: 'Screening', value: 800, color: '#3b82f6' },
-    { name: 'Treatment', value: 300, color: '#10b981' },
-    { name: 'Consultation', value: 300, color: '#ef4444' }
-  ];
 
-  const revenueOverTime = [
-    { month: 'Jul', revenue: 1000 }
+const serviceRevenueMap = bills.reduce((acc, bill) => {
+  const serviceName = bill.service?.name || 'Unknown';
+  acc[serviceName] = (acc[serviceName] || { revenue: 0, count: 0 });
+  acc[serviceName].revenue += bill.patient_amount || 0;
+  acc[serviceName].count += 1;
+  return acc;
+}, {});
 
-  ];
-
-  const paymentSplit = [
-    { name: 'NHIF', amount: 1900000, color: '#059669' },
-    { name: 'Out-of-Pocket', amount: 950000, color: '#dc2626' }
-  ];
-
-  const topServices = [
-    { service: 'Pap Smear', revenue: 660000, count: 132 },
-    { service: 'HPV DNA Test', revenue: 520000, count: 104 },
-    { service: 'Colposcopy', revenue: 480000, count: 48 },
-    { service: 'HPV Vaccination', revenue: 420000, count: 84 },
-    { service: 'Biopsy', revenue: 380000, count: 38 }
-  ];
+const topServices = Object.entries(serviceRevenueMap)
+  .map(([service, { revenue, count }]) => ({ service, revenue, count }))
+  .sort((a, b) => b.revenue - a.revenue)
+  .slice(0, 5);
 
 
-  const lowStockResources = [
-    { resource: 'HPV Test Kit', available: 30, threshold: 30, service: 'HPV DNA Test' },
-    { resource: 'Cytobrush', available: 50, threshold: 50, service: 'Pap Smear' },
-  ];
 
-  const serviceUtilization = [
-    { service: 'Pap Smear', timesUsed: 132, revenue: 660000, avgCost: 5000 },
-    { service: 'HPV DNA Test', timesUsed: 104, revenue: 520000, avgCost: 5000 },
-    { service: 'Colposcopy', timesUsed: 48, revenue: 480000, avgCost: 10000 },
-    { service: 'HPV Vaccination', timesUsed: 84, revenue: 420000, avgCost: 5000 },
-    { service: 'Biopsy', timesUsed: 38, revenue: 380000, avgCost: 10000 }
-  ];
+const lowStockResources = resources.filter(
+  (res) => res.quantity_available <= res.low_stock_threshold
+);
+
+
+  const revenueOverTime = bills.reduce((acc, bill) => {
+  const date = new Date(bill.date_created);
+  const monthYear = date.toLocaleString('default', { month: 'short', year: 'numeric' }); // e.g., "Jul 2025"
+
+  const existing = acc.find(item => item.month === monthYear);
+  const revenue = bill.patient_amount || 0; 
+
+  if (existing) {
+    existing.revenue += revenue;
+  } else {
+    acc.push({ month: monthYear, revenue });
+  }
+
+  return acc;
+}, []);
+
+  const categoryColors = {
+    Screening: '#3b82f6',
+    Treatment: '#10b981',
+    Consultation: '#ef4444',
+    Other: '#a855f7'
+  };
+
+  const revenueByCategory = Object.entries(
+    bills.reduce((acc, bill) => {
+      const rawCategory = bill.service?.category || 'other';
+      const category = rawCategory.charAt(0).toUpperCase() + rawCategory.slice(1); 
+      acc[category] = (acc[category] || 0) + (bill.patient_amount || 0); 
+      return acc;
+    }, {})
+
+  ).map(([name, value]) => ({
+    name,
+    value,
+    color: categoryColors[name] || categoryColors.Other
+  }));
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-KE', {
@@ -62,6 +87,116 @@ const Overview = () => {
       minimumFractionDigits: 0
     }).format(amount);
   };
+  useEffect(() => {
+      const fetchResources = async () => {
+        try {
+          const res = await fetch('http://127.0.0.1:8000/resources/');
+          const data = await res.json();
+          setResources(data);
+        } catch (error) {
+          console.error('Failed to fetch resources:', error);
+        }
+      };
+      fetchResources();
+    }, []);
+
+  useEffect(() => {
+      const fetchPatients = async () => {
+        try {
+          const res = await fetch('http://127.0.0.1:8000/patients');
+          const data = await res.json();
+          setPatients(data);
+        } catch (err) {
+          console.error('Failed to fetch patients', err);
+        }
+      };
+        fetchPatients();
+    }, []);
+    
+    useEffect(() => {
+      const fetchRecommendations = async () => {
+        try {
+          const res = await fetch('http://127.0.0.1:8000/recommendations');
+          const data = await res.json();
+          setRecommendations(data);
+        } catch (err) {
+          console.error('Failed to fetch patients', err);
+        }
+      };
+    
+        fetchRecommendations();
+    }, []);
+  
+    useEffect(() => {
+      const fetchRiskAssessmnet = async () => {
+        try {
+          const res = await fetch('http://127.0.0.1:8000/patients/get-risk-assessments');
+          const data = await res.json();
+          setRiskAssessments(data);
+        } catch (err) {
+          console.error('Failed to fetch patients', err);
+        }
+      };
+    
+        fetchRiskAssessmnet();
+    }, []);
+  
+  
+    useEffect(() => {
+      const fetchTests = async () => {
+        try {
+          const res = await fetch('http://127.0.0.1:8000/lab-tests');
+          const data = await res.json();
+          setTests(data);
+        } catch (err) {
+          console.error('Failed to fetch lab tests', err);
+        } finally {
+          setLoading(false);
+        }
+      };
+    
+      fetchTests();
+    }, []);
+  
+  useEffect(() => {
+    const fetchBills = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/billable-items');
+        const data = await res.json();
+        setBills(data);
+      } catch (err) {
+        console.error('Failed to fetch lab tests', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBills();
+    }, []);
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    if (!token) return;
+    
+    fetch("http://localhost:8000/users/me", { 
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch user info");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setUser(data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user profile:", err);
+      });
+  }, []);
+  
 
   const KPICard = ({ title, value, icon: Icon, color, subtitle }) => (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -90,7 +225,7 @@ const Overview = () => {
       <div className="bg-white mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-800">Welcome back, Jane</h1>
+                <h1 className="text-2xl font-semibold text-gray-800">Welcome back, { user?.first_name}</h1>
             <p className="text-sm text-gray-500 mt-1">Here’s a quick look at today’s activity and insights.</p>
           </div>
           <div className="flex items-center gap-4">
@@ -211,9 +346,9 @@ const Overview = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {lowStockResources.map((resource, index) => (
                       <tr key={index} className='bg-orange-50'>
-                        <td className="px-6 py-4 whitespace-nowrap border-r border-gray-100 text-sm font-medium text-orange-700">{resource.resource}</td>
-                        <td className="px-6 py-4 whitespace-nowrap border-r border-gray-100 text-sm text-orange-700">{resource.available}</td>
-                        <td className="px-6 py-4 whitespace-nowrap border-r border-gray-100 text-sm text-orange-700">{resource.threshold}</td>
+                        <td className="px-6 py-4 whitespace-nowrap border-r border-gray-100 text-sm font-medium text-orange-700">{resource.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap border-r border-gray-100 text-sm text-orange-700">{resource.quantity_available}</td>
+                        <td className="px-6 py-4 whitespace-nowrap border-r border-gray-100 text-sm text-orange-700">{resource.low_stock_threshold}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -222,36 +357,6 @@ const Overview = () => {
             </div>
           </div>
           
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-
-
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">Service Utilization</h3>
-              <p className="text-sm text-gray-500 mb-4">How frequently each service was used and the revenue it generated.</p>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usage</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Revenue</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {serviceUtilization.map((service, index) => (
-                      <tr key={index}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{service.service}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{service.timesUsed}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(service.revenue)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            
-          </div>
       </div>
     </div>
     </AdminLayout>

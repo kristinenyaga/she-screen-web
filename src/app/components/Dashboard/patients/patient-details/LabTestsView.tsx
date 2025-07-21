@@ -1,6 +1,43 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 
+interface FinalizedBy {
+  id: number;
+  first_name: string;
+  last_name: string;
+}
+
+interface Patient {
+  id: number;
+  first_name: string;
+  last_name: string;
+}
+interface FollowUpRecommendation {
+  id: number;
+  patient_id: number;
+  risk_prediction_id: number | null;
+  age: number;
+  number_of_sexual_partners: number;
+  first_sexual_intercourse_age: number;
+  smoking_status: string;
+  stds_history: string;
+  hpv_current_test_result: string;
+  pap_smear_result: string;
+  screening_type_last: string;
+  category: string;
+  context: string[];
+  options: string[];
+  confidence: number;
+  method: string;
+  prediction_label: number;
+  prediction_probabilities: string;
+  final_plan: string;
+  finalized_by_user_id: number;
+  finalized_by: FinalizedBy;
+  created_at: string;
+  patient: Patient;
+}
+
 interface LabTest {
   id: number;
   recommendation_id: number;
@@ -30,6 +67,8 @@ interface LabTest {
 export default function LabTestsView({ patientId }: { patientId: number }) {
   const [labTests, setLabTests] = useState<LabTest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [followUp, setFollowUp] = useState<FollowUpRecommendation | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     fetch(`http://127.0.0.1:8000/lab-tests/by-patient/${patientId}`)
@@ -44,6 +83,29 @@ export default function LabTestsView({ patientId }: { patientId: number }) {
       });
   }, [patientId]);
 
+  const getFollowUP = async (id: number | null) => {
+    if (!id) return;
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/patients/patientfollowup/${id}`);
+      if (!res.ok) throw new Error('Failed to fetch follow-up');
+      const data = await res.json();
+
+      data.options = JSON.parse(data.options || '[]');
+      data.context = JSON.parse(data.context || '[]');
+
+      setFollowUp(data);
+      setShowModal(true);
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setFollowUp(null);
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setFollowUp(null);
+  };
+
   if (loading) return <p className="p-4 text-gray-500 text-sm">Loading lab tests...</p>;
   if (labTests.length === 0)
     return <p className="p-4 text-gray-500 text-sm">No lab tests available for this patient.</p>;
@@ -53,13 +115,14 @@ export default function LabTestsView({ patientId }: { patientId: number }) {
       <h2 className="text-xl text-[#3BA1AF] mb-4 tracking-tight">Lab Tests</h2>
       <div className="overflow-x-auto border border-gray-200 rounded-md shadow-sm">
         <table className="min-w-full bg-white text-sm text-gray-700">
-          <thead className="bg-gray-50 ">
+          <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left whitespace-nowrap">Service</th>
               <th className="px-4 py-3 text-left whitespace-nowrap">Ordered By</th>
               <th className="px-4 py-3 text-left whitespace-nowrap">Result</th>
               <th className="px-4 py-3 text-left whitespace-nowrap">Status</th>
               <th className="px-4 py-3 text-left whitespace-nowrap">Date Ordered</th>
+              <th className="px-4 py-3 text-left whitespace-nowrap">Follow up Plan</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -93,11 +156,38 @@ export default function LabTestsView({ patientId }: { patientId: number }) {
                     day: 'numeric',
                   })}
                 </td>
+                <td
+                  className="px-4 py-3 text-blue-500 cursor-pointer underline"
+                  onClick={() => getFollowUP(test.follow_up_id)}
+                >
+                  view
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Modal */}
+      {showModal && followUp && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-xl p-6 relative">
+            <button
+              onClick={closeModal}
+              className="absolute top-2 right-3 text-gray-500 hover:text-red-600 text-xl"
+            >
+              &times;
+            </button>
+            <h3 className="text-lg font-semibold mb-3 text-[#3BA1AF]">Follow Up Plan</h3>
+            <p className="mb-2"><strong>Final Plan:</strong> {followUp.final_plan}</p>
+            <p className="mb-2"><strong>Category:</strong> {followUp.category}</p>
+            <p className="mb-2"><strong>Confidence:</strong> {(followUp.confidence * 100).toFixed(2)}%</p>
+            <p className="mb-2"><strong>Finalized By:</strong> {followUp.finalized_by.first_name} {followUp.finalized_by.last_name}</p>
+            <p className="mb-2"><strong>Context:</strong> {followUp.context.join(', ')}</p>
+            <p className="text-sm text-gray-500 mt-4">Created at: {new Date(followUp.created_at).toLocaleString()}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
