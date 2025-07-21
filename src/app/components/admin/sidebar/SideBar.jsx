@@ -75,11 +75,11 @@ const SideBar = ({ isExpanded, setIsExpanded }) => {
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-center space-x-3">
           <div className="">
-            <Image src="/health.png" width={40} height={40} />
+            <Image src="/health.png" alt="icon" width={40} height={40} />
           </div>
           {isExpanded && (
             <div className="text-center overflow-hidden">
-              <h1 className="text-2xl font-crimson-pro font-bold text-slate-800">
+              <h1 className="text-2xl font-crimson-pro font-semibold text-[#3BA1AF]">
                 SheScreen
               </h1>
               <p className="text-xs text-slate-600 font-poppins font-medium">Medical Portal</p>
@@ -95,8 +95,8 @@ const SideBar = ({ isExpanded, setIsExpanded }) => {
               <FaUser className="text-white text-sm" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-800 truncate">{user.first_name} { user.last_name}</p>
-              <p className="text-xs text-slate-600 truncate capitalize mt-1">{user.role}</p>
+              <p className="text-sm font-medium text-slate-800 truncate">{user?.first_name} { user?.last_name}</p>
+              <p className="text-xs text-slate-600 truncate capitalize mt-1">{user?.role}</p>
             </div>
           </div>
         </div>

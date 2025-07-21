@@ -84,7 +84,6 @@ export default function LabTestsView({ patientId }: { patientId: number }) {
   }, [patientId]);
 
   const getFollowUP = async (id: number | null) => {
-    if (!id) return;
     try {
       const res = await fetch(`http://127.0.0.1:8000/patients/patientfollowup/${id}`);
       if (!res.ok) throw new Error('Failed to fetch follow-up');
@@ -170,11 +169,11 @@ export default function LabTestsView({ patientId }: { patientId: number }) {
 
       {/* Modal */}
       {showModal && followUp && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/20 bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-xl p-6 relative">
             <button
               onClick={closeModal}
-              className="absolute top-2 right-3 text-gray-500 hover:text-red-600 text-xl"
+              className="absolute top-2 right-3 bg-gray-100 px-3 p-1 rounded-full text-gray-800 cursor-pointer hover:text-red-600 text-3xl"
             >
               &times;
             </button>

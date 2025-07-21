@@ -1,82 +1,211 @@
-'use client';
-import React from 'react';
-import { FaSearch } from 'react-icons/fa';
-import AdminLayout from '@/app/components/admin/AdminLayout';
+"use client";
+import React, { useState, useEffect, useMemo } from "react";
+import AdminLayout from "@/app/components/admin/AdminLayout";
+import {
+  PackageOpen,
+  ShieldCheck,
+  TestTube,
+  Repeat,
+} from "lucide-react";
+type Resource = {
+  name: string;
+  unit_of_measure: string;
+  quantity_available: number;
+  low_stock_threshold: number;
+  classification: string;
+  resource_type: 'consumable' | 'reusable';
+};
 
-const usageLogs = [
-  {
-    id: 1,
-    date: '2025-06-22 10:30 AM',
-    resource: 'HPV Test Kit',
-    quantity: 1,
-    actionType: 'HPV Test',
-    usedBy: 'Nurse Mary',
-    remaining: 4,
-  },
-  {
-    id: 4,
-    date: '2025-06-22 12:30 AM',
-    resource: 'HPV Test Kit',
-    quantity: 1,
-    actionType: 'HPV Test',
-    usedBy: 'Nurse Mary',
-    remaining: 3,
-  },
-  {
-    id: 2,
-    date: '2025-06-22 11:10 AM',
-    resource: 'Cryotherapy Gas',
-    quantity: 1,
-    actionType: 'Cryotherapy',
-    usedBy: 'Dr. Kamau',
-    remaining: 2,
-  },
-];
+type Patient = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  patient_code: string;
+};
 
-const UsageLogs = () => {
+type Service = {
+  id: number;
+  name: string;
+};
+
+type UsageLog = {
+  id: number;
+  date_used: string;
+  resource?: Resource;
+  patient?: Patient;
+  service?: Service;
+};
+type KPICardProps = {
+  title: string;
+  value: string | number;
+  icon: React.ElementType;
+  color: string;
+};
+const KPICard: React.FC<KPICardProps> = ({ title, value, icon: Icon, color }) => (
+  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-sm text-gray-800">{title}</p>
+        <p className={`text-xl font-semibold ${color}`}>{value}</p>
+      </div>
+      <div
+        className={`p-3 rounded-full bg-gray-100 ${color.replace(
+          "text-",
+          "bg-"
+        ).replace("-600", "-100")}`}
+      >
+        <Icon className={`h-6 w-6 ${color}`} />
+      </div>
+    </div>
+  </div>
+);
+
+export default function UsageLogs() {
+  const [logs, setLogs] = useState<UsageLog[]>([]);
+
+  useEffect(() => {
+    const fetchUsageLogs = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/usage-logs");
+        const data = await res.json();
+        setLogs(data);
+      } catch (err) {
+        console.error("Failed to fetch usage logs", err);
+      }
+    };
+    fetchUsageLogs();
+  }, []);
+
+  // 🔢 Compute KPIs from logs
+  const kpiData = useMemo(() => {
+    const totalUsedToday = logs.length;
+
+    const resourceCount: Record<string, number> = {};
+    const serviceCount: Record<string, number> = {};
+
+    logs.forEach((log) => {
+      const resource = log.resource?.name;
+      const service = log.service?.name;
+
+      if (resource) resourceCount[resource] = (resourceCount[resource] || 0) + 1;
+      if (service) serviceCount[service] = (serviceCount[service] || 0) + 1;
+    });
+
+    const topUsedResource =
+      Object.entries(resourceCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
+    const mostConsumedService =
+      Object.entries(serviceCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
+
+    const reusableTools = logs.filter(
+      (log) => log.resource?.resource_type === "reusable"
+    ).length;
+
+    return {
+      totalUsedToday,
+      topUsedResource,
+      mostConsumedService,
+      reusableTools,
+    };
+  }, [logs]);
+
   return (
     <AdminLayout>
-      <div className="font-poppins w-[90%]">
-        <div className="mb-6 mt-1">
-          <h1 className="text-[22px] font-medium text-gray-700 mb-1">
-            Inventory Usage Logs
-          </h1>
-          <p className="text-sm text-gray-500">
-            Track how screening and treatment supplies are used across procedures.
-          </p>
+      <div className="min-h-screen font-inter">
+        <h1 className="text-2xl mb-5 font-semibold font-poppins text-[#3BA1AF]">
+          Resource Usage Logs
+        </h1>
+
+        {/* ✅ KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+          <KPICard
+            title="Total Resources Used Today"
+            value={kpiData.totalUsedToday}
+            icon={PackageOpen}
+            color="text-[#3A6FD7]"
+          />
+          <KPICard
+            title="Top Used Resource"
+            value={kpiData.topUsedResource}
+            icon={ShieldCheck}
+            color="text-[#EF5B5B]"
+          />
+          <KPICard
+            title="Most Consumed Service"
+            value={kpiData.mostConsumedService}
+            icon={TestTube}
+            color="text-[#F97316]"
+          />
+          <KPICard
+            title="Reusable Tools Logged"
+            value={kpiData.reusableTools}
+            icon={Repeat}
+            color="text-[#10B981]"
+          />
         </div>
 
-        {/* Filters (can be enhanced later) */}
-        <div className="flex items-center mb-4 gap-3">
-          <div className="relative w-full max-w-sm">
-            <input
-              type="text"
-              placeholder="Search by resource or action..."
-              className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3BA1AF]"
-            />
-            <FaSearch className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400" />
-          </div>
+        <div className="bg-white mb-5 flex flex-wrap gap-4 items-center p-4 rounded-md shadow">
+          <input
+            type="text"
+            placeholder="Search patient or resource..."
+            className="w-64 px-3 py-3 border border-gray-200 rounded text-sm"
+          />
+          <select className="px-3 py-3 border border-gray-200 rounded text-sm text-gray-700">
+            <option>Date: Today</option>
+            <option>This Week</option>
+            <option>Custom Range</option>
+          </select>
+          <select className="px-3 py-3 border border-gray-200 rounded text-sm text-gray-700">
+            <option>Classification</option>
+            <option>Consumable</option>
+            <option>Reusable</option>
+          </select>
         </div>
 
-        <div className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm overflow-x-auto">
-          <table className="min-w-full text-sm text-left text-gray-700">
-            <thead className="border-b border-gray-200 text-xs uppercase">
+        <div className="bg-white rounded-lg shadow overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-blue-50 text-gray-800 font-poppins text-left">
               <tr>
-                <th className="px-6 py-3">Date/Time</th>
-                <th className="px-6 py-3">Resource</th>
-                <th className="px-6 py-3">Quantity Used</th>
-                <th className="px-6 py-3">Action Type</th>
-                <th className="px-6 py-3">Remaining Stock</th>
+                <th className="px-4 py-4">Date/Time</th>
+                <th className="px-4 py-4">Resource</th>
+                <th className="px-4 py-4">Type</th>
+                <th className="px-4 py-4">Quantity</th>
+                <th className="px-4 py-4">Used For</th>
+                <th className="px-4 py-4">Patient</th>
               </tr>
             </thead>
-            <tbody>
-              {usageLogs.map((log) => (
-                <tr key={log.id} className="border-b border-gray-100">
-                  <td className="px-6 py-4 whitespace-nowrap">{log.date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{log.resource}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-red-600 font-medium">{log.quantity}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{log.actionType}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{log.remaining}</td>
+            <tbody className="divide-y divide-gray-100">
+              {logs.map((log) => (
+                <tr key={log.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3.5 text-gray-800">
+                    {new Date(log.date_used).toDateString()}
+                  </td>
+                  <td className="px-4 py-3.5 text-gray-800">
+                    {log.resource?.name}
+                  </td>
+                  <td className="px-4 py-3.5 text-gray-800">
+                    <span
+                      className={`inline-block py-1.5 px-4 rounded-full text-sm font-medium ${log.resource?.resource_type === "reusable"
+                          ? "bg-blue-100 text-[#3BA1AF]"
+                          : "bg-[#fad5ea] text-[#ed1191]"
+                        }`}
+                      title={
+                        log.resource?.resource_type === "reusable"
+                          ? "Reusable. Quantity = uses logged"
+                          : "Consumable. Deducted from inventory"
+                      }
+                    >
+                      {log.resource?.resource_type}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3.5 text-gray-800">1</td>
+                  <td className="px-4 py-3.5 text-gray-800">
+                    {log.service?.name}
+                  </td>
+                  <td className="px-4 py-3.5 text-gray-800">
+                    {log.patient
+                      ? `${log.patient.first_name} ${log.patient.last_name}`
+                      : "-"}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -85,6 +214,4 @@ const UsageLogs = () => {
       </div>
     </AdminLayout>
   );
-};
-
-export default UsageLogs;
+}

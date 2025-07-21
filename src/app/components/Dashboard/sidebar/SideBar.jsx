@@ -79,7 +79,7 @@ useEffect(() => {
           </div>
           {isExpanded && (
             <div className="text-center overflow-hidden">
-              <h1 className="text-2xl font-crimson-pro font-bold text-slate-800">
+              <h1 className="text-2xl font-crimson-pro font-semibold text-[#3BA1AF]">
                 SheScreen
               </h1>
               <p className="text-xs text-slate-600 font-poppins font-medium">Medical Portal</p>

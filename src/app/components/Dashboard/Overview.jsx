@@ -141,7 +141,7 @@ const recommendationTypes = computeRecommendationTypes();
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-          <KPICard title="Total Patients Assessed" value={kpiData.totalPatients} icon={Users} color="text-[#3A6FD7]" />
+          <KPICard title="Total Patients" value={kpiData.totalPatients} icon={Users} color="text-[#3A6FD7]" />
           <KPICard title="High Risk Patients" value={kpiData.highRiskPatients} icon={AlertTriangle} color="text-[#EF5B5B]" />
           <KPICard title="Lab Tests Ordered" value={kpiData.labTestsOrdered} icon={FileText} color="text-[#F97316]" />
           <KPICard title="Lab Tests Completed" value={kpiData.labTestsCompleted} icon={Activity} color="text-[#10B981]" />

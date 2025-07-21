@@ -225,7 +225,7 @@ const lowStockResources = resources.filter(
       <div className="bg-white mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-                <h1 className="text-2xl font-semibold text-gray-800">Welcome back, { user?.first_name}</h1>
+            <h1 className="text-2xl font-semibold text-gray-800">Welcome back, {user?.first_name}</h1>
             <p className="text-sm text-gray-500 mt-1">Here’s a quick look at today’s activity and insights.</p>
           </div>
           <div className="flex items-center gap-4">

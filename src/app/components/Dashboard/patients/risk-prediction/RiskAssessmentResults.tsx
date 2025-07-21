@@ -7,6 +7,9 @@ import { AlertTriangle, CheckCircle2, Info, User, Calendar} from 'lucide-react';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { PatientProfile, PricingDetails, RiskResult } from './typeDefinitions';
 
+type User = {
+  id:number
+}
 const RiskAssessmentResults = () => {
   const [doctorDecision, setDoctorDecision] = useState<'accept' | 'custom'>('accept');
   const [notes, setNotes] = useState('');
@@ -15,8 +18,7 @@ const RiskAssessmentResults = () => {
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
   const [selectedTests, setSelectedTests] = useState<string[]>([]);
-
-
+  const [user, setUser] = useState<User>();
   const router = useRouter();
   const searchParams = useSearchParams();
   const patientId = searchParams.get('patient');
@@ -25,6 +27,8 @@ const RiskAssessmentResults = () => {
 
   const [loading, setLoading] = useState(true);
   const [showAdditionalServices, setShowAdditionalServices] = useState(false);
+
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,6 +60,31 @@ const RiskAssessmentResults = () => {
 
     fetchData();
   }, [patientId]);
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    if (!token) return;
+      
+    fetch("http://localhost:8000/users/me", { 
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch user info");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setUser(data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user profile:", err);
+      });
+  }, []);
+  
 
   if (loading || !patientProfile || !riskResult) {
     return (
@@ -117,7 +146,6 @@ const RiskAssessmentResults = () => {
       if (!recRes.ok) throw new Error('Failed to save recommendation');
       const recommendation = await recRes.json();
 
-      // Create lab tests (only for lab-related selected actions)
       for (const test of selectedLabTests) {
         const serviceRes = await fetch(`http://127.0.0.1:8000/services/by-name/${encodeURIComponent(test)}`);
         if (!serviceRes.ok) throw new Error(`Service "${test}" not found`);
@@ -127,7 +155,7 @@ const RiskAssessmentResults = () => {
           recommendation_id: recommendation.id,
           service_id: serviceData.id,
           patient_id: Number(patientId),
-          ordered_by_id: 1, // replace with session user ID
+          ordered_by_id: user?.id, 
           status: 'pending',
         };
 
@@ -177,7 +205,36 @@ const RiskAssessmentResults = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(billItem),
         });
+
+
       }
+      for (const serviceName of selectedTests) {
+        const serviceRes = await fetch(`http://127.0.0.1:8000/services/by-name/${encodeURIComponent(serviceName)}`);
+        if (!serviceRes.ok) continue;
+
+        const service = await serviceRes.json();
+
+        const requirementRes = await fetch(`http://127.0.0.1:8000/service-resource-requirements/service/${service.id}`);
+        if (!requirementRes.ok) continue;
+
+        const requirements = await requirementRes.json();
+
+        for (const req of requirements) {
+          const usageLogPayload = {
+            patient_id: Number(patientId),
+            service_id: service.id,
+            resource_id: req.resource_id,
+            quantity_used: req.required_quantity,
+          };
+
+          await fetch('http://127.0.0.1:8000/usage-logs/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(usageLogPayload),
+          });
+        }
+      }
+
 
       setShowRecommendation(false);
       router.push('/dashboard/patients');
@@ -186,10 +243,6 @@ const RiskAssessmentResults = () => {
     }
   };
 
-    
-    
-    
-    
 
   const getRiskStyling = (level:string) => {
     switch (level.toLowerCase()) {
