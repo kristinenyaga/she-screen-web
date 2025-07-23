@@ -76,9 +76,8 @@ export default function UsageLogs() {
     fetchUsageLogs();
   }, []);
 
-  // 🔢 Compute KPIs from logs
   const kpiData = useMemo(() => {
-    const totalUsedToday = logs.length;
+    const totalUsed = logs.length;
 
     const resourceCount: Record<string, number> = {};
     const serviceCount: Record<string, number> = {};
@@ -101,7 +100,7 @@ export default function UsageLogs() {
     ).length;
 
     return {
-      totalUsedToday,
+      totalUsed,
       topUsedResource,
       mostConsumedService,
       reusableTools,
@@ -110,16 +109,16 @@ export default function UsageLogs() {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen font-inter">
-        <h1 className="text-2xl mb-5 font-semibold font-poppins text-[#3BA1AF]">
+      <div className="min-h-screen font-poppins">
+        <h1 className="text-2xl mb-5 font-semibold text-[#3BA1AF]">
           Resource Usage Logs
         </h1>
 
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
           <KPICard
-            title="Total Resources Used Today"
-            value={kpiData.totalUsedToday}
+            title="Total Resources Used"
+            value={kpiData.totalUsed}
             icon={PackageOpen}
             color="text-[#3A6FD7]"
           />
@@ -163,7 +162,7 @@ export default function UsageLogs() {
 
         <div className="bg-white rounded-lg shadow overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-blue-50 text-gray-800 font-poppins text-left">
+            <thead className="bg-blue-50/50 text-gray-800 font-poppins text-left">
               <tr>
                 <th className="px-4 py-4">Date/Time</th>
                 <th className="px-4 py-4">Resource</th>

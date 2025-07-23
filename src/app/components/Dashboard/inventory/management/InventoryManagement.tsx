@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { FaPlusCircle, FaEdit, FaTrash, FaExclamationTriangle } from 'react-icons/fa';
+import { FaPlusCircle, FaEdit, FaExclamationTriangle } from 'react-icons/fa';
 import EditModal from './EditModal';
 import AdminLayout from '@/app/components/admin/AdminLayout';
 
@@ -83,8 +83,8 @@ const InventoryManagement = () => {
     <AdminLayout>
       <div className="font-poppins w-[90%]">
         <div className="mb-6 flex items-center justify-between">
-          <div className='mt-1'>
-            <h1 className="text-[25px] font-semibold text-gray-800 mb-2">Manage Inventory</h1>
+          <div className=''>
+            <h1 className="text-2xl mb-2 font-semibold text-[#3BA1AF]">Manage Inventory</h1>
             <p className="text-base text-gray-700">Add, edit, or remove screening and treatment supplies for the hospital</p>
           </div>
           <button onClick={() => {
@@ -97,7 +97,7 @@ const InventoryManagement = () => {
           </button>
         </div>
 
-        <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-x-auto">
+        <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-x-auto mt-2.5">
           <table className="min-w-full text-sm text-left text-gray-900">
             <thead className="border-b bg-blue-50/50 border-gray-200 text-base">
               <tr>
@@ -114,11 +114,11 @@ const InventoryManagement = () => {
                 const needsRestock = resource.quantity_available <= resource.low_stock_threshold;
                 return (
                   <tr key={resource.id} className={`border-b border-gray-200 text-[15px] ${needsRestock ? 'bg-orange-50' : ''}`}>
-                    <td className="px-6 py-4 whitespace-nowrap">{resource.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{resource.quantity_available}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{resource.unit_of_measure}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{resource.low_stock_threshold}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-700">{resource.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-700">{resource.quantity_available}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-700">{resource.unit_of_measure}</td>
+                    <td className="pl-20 py-4 whitespace-nowrap text-gray-700">{resource.low_stock_threshold}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-700">
                       {needsRestock ? (
                         <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold bg-orange-50 text-amber-600 rounded-full">
                           <FaExclamationTriangle className="text-sm" /> Restock Needed
@@ -129,18 +129,13 @@ const InventoryManagement = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 flex items-center space-x-3">
+                    <td className="px-8 py-4 flex items-center space-x-3">
                       <button onClick={() => {
                         setMode('edit');
                         setActiveResource(resource);
                         setOpen(true);
-                      }} className="text-green-600 text-lg hover:text-green-500 cursor-pointer transition">
-                        <FaEdit />
-                      </button>
-                      <button onClick={() => {
-                        setActiveResource(resource);
-                      }} className="text-red-500 hover:text-red-700 cursor-pointer transition">
-                        <FaTrash />
+                      }} className="text-base flex gap-2 items-center cursor-pointer transition">
+                         <FaEdit className='text-green-600 hover:text-green-500 mb-[2px]' />
                       </button>
                     </td>
                   </tr>

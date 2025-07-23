@@ -16,7 +16,7 @@ import {
   FaBell,
 } from 'react-icons/fa';
 import { MdInventory } from 'react-icons/md';
-import Image from 'next/image';
+
 
 const SideBar = ({ isExpanded, setIsExpanded }) => {
   const [user, setUser] = useState();
@@ -75,7 +75,8 @@ useEffect(() => {
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-center space-x-3">
           <div className="">
-            <Image src="/health.png" width={40} height={40} alt="logo" />
+            <img src="/health.png" width="40" height="40" alt="Logo" />
+
           </div>
           {isExpanded && (
             <div className="text-center overflow-hidden">

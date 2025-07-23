@@ -140,7 +140,6 @@ const LoginPage = () => {
         containerClassName=""
         containerStyle={{}}
         toastOptions={{
-          // Define default options
           className: '',
           duration: 5000,
           removeDelay: 1000,
@@ -149,7 +148,6 @@ const LoginPage = () => {
             color: '#000',
           },
 
-          // Default options for specific types
           success: {
             duration: 3000,
             iconTheme: {

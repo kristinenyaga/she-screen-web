@@ -101,7 +101,7 @@ const Recommendation = () => {
         ) : filtered.length === 0 ? (
             <p className="text-gray-600 text-sm">No recommendations found.</p>
           ) : (
-              <div className="overflow-x-auto w-[80%]">
+              <div className="overflow-x-auto w-[85%]">
                 <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
                   
                   <thead className="bg-gray-100 text-sm text-gray-700">

@@ -36,6 +36,10 @@ interface LabTest {
   result: string | null;
   comment?: string | null;
 }
+
+interface User{
+  id:number
+}
 const STATUS_OPTIONS: FilterStatus[] = ['all', 'pending', 'completed'];
 const LabTests = () => {
   const [tests, setTests] = useState<LabTest[]>([]);
@@ -45,7 +49,32 @@ const LabTests = () => {
   const [resultValue, setResultValue] = useState('');
   const [comment, setComment] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [user,setUser] = useState<User | null>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    if (!token) return;
+      
+    fetch("http://localhost:8000/users/me", { 
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch user info");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setUser(data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user profile:", err);
+      });
+  }, []);
 
   useEffect(() => {
     const fetchTests = async () => {
@@ -84,7 +113,7 @@ const LabTests = () => {
           result: resultValue,
           status: 'completed',
           comment,
-          entered_by_id: 1
+          entered_by_id: user?.id
         }),
       });
 
@@ -97,6 +126,19 @@ const LabTests = () => {
         setTests(prev =>
           prev.map(t => (t.id === updated.id ? updated : t))
         );
+        await fetch('http://127.0.0.1:8000/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`
+          },
+          body: JSON.stringify({
+            receiver_patient_id: updated.patient?.id,
+            test_name: updated.service?.name,
+            result: updated.result
+          })
+        });
+
 
         const testName = updated.service?.name;
         if (testName === "HPV DNA Test" || testName === "Pap Smear") {

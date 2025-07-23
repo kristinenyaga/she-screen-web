@@ -4,6 +4,7 @@ import { CheckCircle, Save, AlertCircle } from 'lucide-react';
 import DashboardLayout from '../DashboardLayout';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
+import toast, { Toaster } from "react-hot-toast";
 export interface FollowUpRecommendation {
   id: number;
   patient_id: number;
@@ -25,7 +26,9 @@ export interface FollowUpRecommendation {
   prediction_probabilities: string; 
   created_at: string;
 }
-
+interface User {
+  id: number
+}
 const FollowUpReviewPage = () => {
   const searchParams = useSearchParams();
   const patientId = searchParams.get('patient');
@@ -36,7 +39,33 @@ const FollowUpReviewPage = () => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [planType, setPlanType] = useState<'suggested' | 'custom'>('suggested');
+  const [user, setUser] = useState<User | null>(null)
+  
+  
   const router = useRouter()
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    if (!token) return;
+      
+    fetch("http://localhost:8000/users/me", { 
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch user info");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setUser(data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user profile:", err);
+      });
+  }, []);
   useEffect(() => {
     const fetchFollowUp = async () => {
       try {
@@ -79,13 +108,24 @@ const FollowUpReviewPage = () => {
         },
         body: JSON.stringify({
           final_plan: finalPlan,
-          finalized_by_user_id: 1, // TODO: Replace with the actual logged-in user ID
+          finalized_by_user_id: user?.id, 
         }),
       });
 
       if (!res.ok) throw new Error('Failed to save the treatment plan');
+      await fetch('http://127.0.0.1:8000/send-followup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`
+        },
+        body: JSON.stringify({
+          patient_id: followUp.patient_id,
+          plan_summary: finalPlan
+        }),
+      });
 
-      alert('Treatment plan saved successfully!');
+      toast.success("Login successful");
       router.push('/dashboard/patients');
     } catch (err) {
       console.error('Error saving plan:', err);
@@ -101,7 +141,6 @@ const FollowUpReviewPage = () => {
     return 'text-red-600 bg-red-50';
   };
 
-  console.log(followUp)
 
   if (loading) {
     return (
@@ -277,7 +316,7 @@ const FollowUpReviewPage = () => {
             <button
               onClick={handleSave}
               disabled={saving || (planType === 'suggested' && !selectedOption) || (planType === 'custom' && !customPlan.trim())}
-              className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+              className="flex items-center gap-2 cursor-pointer bg-gradient-to-r from-emerald-600 to-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:to-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
             >
               {saving ? (
                 <>
@@ -293,7 +332,32 @@ const FollowUpReviewPage = () => {
             </button>
           </div>
         </div>
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          gutter={8}
+          containerClassName=""
+          containerStyle={{}}
+          toastOptions={{
+            className: '',
+            duration: 5000,
+            removeDelay: 1000,
+            style: {
+              background: '#fff',
+              color: '#000',
+            },
+  
+            success: {
+              duration: 3000,
+              iconTheme: {
+                primary: 'green',
+                secondary: 'black',
+              },
+            },
+          }}
+        />
       </div>
+
     </DashboardLayout>
   );
 };
