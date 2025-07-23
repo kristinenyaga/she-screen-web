@@ -142,7 +142,7 @@ export default function UsageLogs() {
           />
         </div>
 
-        <div className="bg-white mb-5 flex flex-wrap gap-4 items-center p-4 rounded-md shadow">
+        <div className="bg-white hidden mb-5 flex-wrap gap-4 items-center p-4 rounded-md shadow">
           <input
             type="text"
             placeholder="Search patient or resource..."

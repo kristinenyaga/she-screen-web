@@ -83,9 +83,7 @@ const Overview = () => {
         setTests(data);
       } catch (err) {
         console.error('Failed to fetch lab tests', err);
-      } finally {
-        setLoading(false);
-      }
+      } 
     };
   
     fetchTests();

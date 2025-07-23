@@ -1,13 +1,16 @@
-
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+import { SelectChangeEvent } from '@mui/material/Select';
 const style = {
-  position: 'absolute',
+  position: 'absolute' as const,
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
@@ -21,7 +24,8 @@ const style = {
 type Resource = {
   id: number,
   name: string,
-  type: string,
+  resource_type: string,
+  classification: string,
   quantity: number,
   unit: string,
   lowThreshold: number
@@ -29,21 +33,23 @@ type Resource = {
 
 type EditModalProps = {
   open: boolean,
-  handleClose: () => void
+  handleClose: () => void,
   mode: 'add' | 'edit';
   activeResource: Resource | null;
   onSubmit: (resource: Resource) => void;
 }
 
-const EditModal: React.FC<EditModalProps> = ({ open, handleClose, mode, activeResource,onSubmit }) => {
-  const [formData, setFormData] = React.useState({
+const EditModal: React.FC<EditModalProps> = ({ open, handleClose, mode, activeResource, onSubmit }) => {
+  const [formData, setFormData] = React.useState<Resource>({
     id: activeResource?.id || Date.now(),
     name: activeResource?.name || '',
-    type: activeResource?.type || '',
+    resource_type: activeResource?.resource_type || '',
+    classification: activeResource?.classification || '',
     quantity: activeResource?.quantity || 0,
     unit: activeResource?.unit || '',
     lowThreshold: activeResource?.lowThreshold || 0,
-  })
+  });
+
   React.useEffect(() => {
     if (mode === 'edit' && activeResource) {
       setFormData(activeResource);
@@ -51,7 +57,8 @@ const EditModal: React.FC<EditModalProps> = ({ open, handleClose, mode, activeRe
       setFormData({
         id: Date.now(),
         name: '',
-        type: '',
+        resource_type: '',
+        classification: '',
         quantity: 0,
         unit: '',
         lowThreshold: 0,
@@ -59,18 +66,25 @@ const EditModal: React.FC<EditModalProps> = ({ open, handleClose, mode, activeRe
     }
   }, [mode, activeResource]);
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name as string]: name === 'quantity' || name === 'lowThreshold' ? Number(value) : value
+    }));
+  };
+  const handleSelectChange = (e: SelectChangeEvent) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
   const handleSubmit = () => {
     onSubmit(formData);
     handleClose();
   };
 
-  const handleChange = (e:React.ChangeEvent<HTMLInputElement>)=>{
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === 'quantity' || name === 'lowThreshold' ? Number(value) :value
-    }))
-  }
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
@@ -87,6 +101,33 @@ const EditModal: React.FC<EditModalProps> = ({ open, handleClose, mode, activeRe
           onChange={handleChange}
         />
 
+        <FormControl fullWidth margin="normal">
+          <InputLabel id="type-label">Resource Type</InputLabel>
+          <Select
+            labelId="type-label"
+            name="resource_type"
+            value={formData.resource_type}
+            label="Resource Type"
+            onChange={handleSelectChange}
+          >
+            <MenuItem value="CONSUMABLE">Consumable</MenuItem>
+            <MenuItem value="REUSABLE">Reusable</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth margin="normal">
+          <InputLabel id="classification-label">Classification</InputLabel>
+          <Select
+            labelId="classification-label"
+            name="classification"
+            value={formData.classification}
+            label="Classification"
+            onChange={handleSelectChange}
+          >
+            <MenuItem value="PHARMACOLOGICAL">Pharmacology</MenuItem>
+            <MenuItem value="NON_PHARMACOLOGICAL">Non-Pharmacology</MenuItem>
+          </Select>
+        </FormControl>
 
         <TextField
           fullWidth
@@ -127,7 +168,7 @@ const EditModal: React.FC<EditModalProps> = ({ open, handleClose, mode, activeRe
         </Box>
       </Box>
     </Modal>
-  )
-}
+  );
+};
 
-export default EditModal
+export default EditModal;
