@@ -6,9 +6,12 @@ const STATUS_OPTIONS = [
   { label: 'All', value: 'all' },
   { label: 'Pending', value: 'pending' },
   { label: 'Awaiting Test Results', value: 'awaiting_test_results' },
+  { label: 'Results Entered', value: 'results_entered' },
+  { label: 'No Results Needed', value: 'no_results_needed' },
   { label: 'Care Plan Added', value: 'care_plan_added' },
   { label: 'Closed', value: 'closed' },
 ];
+
 type PatientInfo = {
   patient_code: string;
   first_name: string;
@@ -17,7 +20,13 @@ type PatientInfo = {
 
 type RecommendationType = {
   id: number;
-  status: 'pending' | 'awaiting_test_results' | 'care_plan_added' | 'closed';
+  status:
+  | 'pending'
+  | 'awaiting_test_results'
+  | 'care_plan_added'
+  | 'closed'
+  | 'no_results_needed'
+  | 'results_entered';
   urgency: 'High' | 'Medium' | 'Low';
   patient: PatientInfo;
   test_recommendations?: string;
@@ -28,10 +37,13 @@ type RecommendationType = {
 };
 
 
+
 const getStatusBadgeClass = (status: string) => {
   const map: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-800',
     awaiting_test_results: 'bg-blue-100 text-blue-800',
+    results_entered: 'bg-emerald-100 text-emerald-800',
+    no_results_needed: 'bg-indigo-100 text-indigo-800 ',
     care_plan_added: 'bg-green-100 text-green-800',
     closed: 'bg-gray-200 text-gray-700',
   };
@@ -129,7 +141,7 @@ const Recommendation = () => {
                         <td className="py-3 px-4">{rec.urgency}</td>
                         <td className="py-3 px-4">
                           <span
-                            className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusBadgeClass(
+                            className={`text-base font-medium px-2.5 py-1 rounded-full ${getStatusBadgeClass(
                               rec.status
                             )}`}
                           >

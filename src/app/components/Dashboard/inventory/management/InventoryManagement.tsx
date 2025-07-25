@@ -55,10 +55,12 @@ const InventoryManagement = () => {
     };
 
     if (mode === 'edit') {
+
       try {
+        const token = sessionStorage.getItem('token');
         const res = await fetch(`http://127.0.0.1:8000/resources/${normalizedResource.id}/`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, },
           body: JSON.stringify({
             ...normalizedResource,
             id: resource.id 

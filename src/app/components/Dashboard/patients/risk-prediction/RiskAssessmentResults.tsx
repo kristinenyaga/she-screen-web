@@ -118,10 +118,16 @@ const RiskAssessmentResults = () => {
       return availabilityItem?.available === false;
     });
 
-    let status = 'awaiting_test_results';
-    if (unavailableTests.length > 0) {
-      status = 'pending_resources';
+    let status = 'no_results_needed';
+
+    if (selectedLabTests.length > 0) {
+      if (unavailableTests.length > 0) {
+        status = 'pending_resources';
+      } else {
+        status = 'awaiting_test_results';
+      }
     }
+
 
     const payload = {
       patient_id: Number(patientId),
