@@ -95,7 +95,7 @@ const SideBar = ({ isExpanded, setIsExpanded }) => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-slate-800 truncate">{user?.first_name} { user?.last_name}</p>
-              <p className="text-xs text-slate-600 truncate capitalize mt-1">{user?.role}</p>
+              <p className="text-xs text-slate-600 truncate capitalize mt-1">Admin</p>
             </div>
           </div>
         </div>
